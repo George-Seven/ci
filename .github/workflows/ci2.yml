@@ -44,8 +44,8 @@ jobs:
           # sudo apt install crossbuild-essential-arm64
           # python android/build/python/cmake.py --noqtwebengine --noshowprefixforinfo --target linux_aarch64 || true
           cd ndk
-          pipx install poetry
           sudo apt install -y pipx
+          pipx install poetry
           poetry env use ../prebuilts/python/linux-x86/bin/python3
           poetry install
           poetry shell
