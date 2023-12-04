@@ -15,7 +15,7 @@ jobs:
          run: |
           apt update
           yes | apt upgrade -y
-          apt install -y curl sudo git
+          apt install -yq libexpat-dev bison sudopython3-full python3-pip python-is-python3 git rsync curl wget make tar 
           mkdir home
           cd home
           export HOME=$(pwd)
