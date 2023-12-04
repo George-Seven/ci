@@ -13,7 +13,9 @@ jobs:
          distro: ubuntu22.04
          shell: /usr/bin/bash
          run: |
-          sudo apt install -y curl
+          apt update
+          yes | apt upgrade -y
+          apt install -y curl
           mkdir home
           cd home
           export HOME=$(pwd)
