@@ -48,8 +48,7 @@ jobs:
           pipx install poetry
           poetry env use ../prebuilts/python/linux-x86/bin/python3
           poetry install
-          poetry shell
-          python checkbuild.py --no-build-tests || true
+          poetry run ./checkbuild.py --no-build-tests || true
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
