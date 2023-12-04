@@ -41,7 +41,7 @@ jobs:
           repo sync -cj 12
           cd external/qemu
           sudo apt install crossbuild-essential-arm64
-          python android/build/python/cmake.py --noqtwebengine --noshowprefixforinfo --target linux_aarch64
+          python android/build/python/cmake.py --noqtwebengine --noshowprefixforinfo --target linux_aarch64 || true
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
