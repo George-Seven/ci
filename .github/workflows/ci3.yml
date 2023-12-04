@@ -21,7 +21,6 @@ jobs:
           mkdir home
           cd home
           export HOME=$(pwd)
-          sudo apt install -y libgl-dev
           mkdir -p ~/bin
           curl -L https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
