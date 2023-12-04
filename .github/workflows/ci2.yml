@@ -33,22 +33,23 @@ jobs:
           curl -L https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           export PATH="$HOME/bin:$PATH"
-          # python -m venv venv
-          # . venv/bin/activate
+          curl -L https://pyenv.run | bash
+          export PYENV_ROOT="$HOME/.pyenv"
+          [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+          eval "$(pyenv init -)"
+          eval "$(pyenv virtualenv-init -)"
           mkdir ndk
           cd ndk
-          # pip install -U absl-py urlfetch
           repo init -u https://android.googlesource.com/platform/manifest -b master-ndk --depth=1
           repo sync -cj 12
-          # cd external/qemu
-          # sudo apt install crossbuild-essential-arm64
-          # python android/build/python/cmake.py --noqtwebengine --noshowprefixforinfo --target linux_aarch64 || true
           cd ndk
           sudo apt install -y pipx
           pipx install poetry
-          poetry env use ../prebuilts/python/linux-x86/bin/python3
+          pyenv install 3.10.12
+          pyenv local 3.10.12
+          poetry env use 3.10
           poetry install
-          poetry run ./checkbuild.py --no-build-tests || true
+          poetry run ./checkbuild.py --no-build-tests --permissive-python-environment || true
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
