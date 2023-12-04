@@ -33,17 +33,23 @@ jobs:
           curl -L https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           export PATH="$HOME/bin:$PATH"
-          python -m venv venv
-          . venv/bin/activate
+          # python -m venv venv
+          # . venv/bin/activate
           mkdir ndk
           cd ndk
-          pip install -U absl-py urlfetch
+          # pip install -U absl-py urlfetch
           repo init -u https://android.googlesource.com/platform/manifest -b master-ndk --depth=1
           repo sync -cj 12
           # cd external/qemu
-          sudo apt install crossbuild-essential-arm64
-          
+          # sudo apt install crossbuild-essential-arm64
           # python android/build/python/cmake.py --noqtwebengine --noshowprefixforinfo --target linux_aarch64 || true
+          cd ndk
+          sudo apt install -y pipx
+          poetry env use ../prebuilts/python/linux-x86/bin/python3
+          pipx install poetry
+          poetry install
+          poetry shell
+          python checkbuild.py --no-build-tests || true
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
