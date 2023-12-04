@@ -36,7 +36,7 @@ jobs:
           cd emu
           pip install -U absl-py urlfetch
           repo init -u https://android.googlesource.com/platform/manifest -b emu-master-dev --depth=1
-          repo sync -qcj 12
+          repo sync -cj 12
           cd external/qemu
           sudo apt install crossbuild-essential-arm64
           python android/build/python/cmake.py --noqtwebengine --noshowprefixforinfo --target linux_aarch64
