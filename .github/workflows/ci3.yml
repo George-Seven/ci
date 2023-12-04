@@ -16,8 +16,8 @@ jobs:
           apt update
           yes | apt upgrade -y
           apt install -yq libexpat-dev bison sudo python3-full python3-pip python-is-python3 git rsync curl wget make tar
-          git config --global user.email "you@example.com"
-          git config --global user.name "Your Name"
+          git config --global user.email "test@test.com"
+          git config --global user.name "test"
           mkdir home
           cd home
           export HOME=$(pwd)
