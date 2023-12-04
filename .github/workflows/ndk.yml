@@ -1,4 +1,4 @@
-name: ci2
+name: ndk
 on:
   workflow_dispatch:
 
