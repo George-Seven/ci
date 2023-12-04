@@ -32,6 +32,8 @@ jobs:
           curl -L https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           export PATH="$HOME/bin:$PATH"
+          python -m venv venv
+          . venv/bin/activate
           mkdir emu
           cd emu
           pip install -U absl-py urlfetch
