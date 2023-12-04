@@ -38,7 +38,7 @@ jobs:
           eval "$(pyenv init -)"
           eval "$(pyenv virtualenv-init -)"
           mkdir llvm-toolchain
-          llvm-toolchain
+          cd llvm-toolchain
           repo init -u https://android.googlesource.com/platform/manifest -b llvm-toolchain --depth=1
           repo sync -cj 12
           python toolchain/llvm_android/build.py --no-build windows || true
