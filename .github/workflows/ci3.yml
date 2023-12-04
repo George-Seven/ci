@@ -16,11 +16,9 @@ jobs:
           apt update
           yes | apt upgrade -y
           apt install -yq libexpat-dev bison sudo python3-full python3-pip python-is-python3 git rsync curl wget make tar
-          git config --global user.email "test@test.com"
-          git config --global user.name "test"
-          mkdir home
-          cd home
-          export HOME=$(pwd)
+          # mkdir home
+          # cd home
+          # export HOME=$(pwd)
           mkdir -p ~/bin
           curl -L https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
@@ -32,6 +30,8 @@ jobs:
           eval "$(pyenv virtualenv-init -)"
           mkdir ndk
           cd ndk
+          git config --global user.email "test@example.com"
+          git config --global user.name "test"
           repo init -u https://android.googlesource.com/platform/manifest -b master-ndk --depth=1
           repo sync -cj 12
           cd ndk
