@@ -36,7 +36,7 @@ jobs:
           repo init -u https://android.googlesource.com/platform/manifest -b master-ndk --depth=1
           repo sync -cj 12
           cd ndk
-          sudo apt install -y pipx
+          apt install -y pipx
           pipx install poetry
           pyenv install 3.10.12
           pyenv local 3.10.12
