@@ -23,12 +23,11 @@ jobs:
           remove-codeql: 'true'
           remove-docker-images: 'true'
 
-      - name: Build Android NDK
+      - name: Build Toolchain
         run: |
           mkdir home
           cd home
           export HOME=$(pwd)
-          sudo apt install -y libgl-dev
           mkdir -p ~/bin
           curl -L https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
@@ -38,18 +37,20 @@ jobs:
           [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
           eval "$(pyenv init -)"
           eval "$(pyenv virtualenv-init -)"
-          mkdir ndk
-          cd ndk
-          repo init -u https://android.googlesource.com/platform/manifest -b master-ndk --depth=1
+          mkdir llvm-toolchain
+          llvm-toolchain
+          repo init -u https://android.googlesource.com/platform/manifest -b llvm-toolchain --depth=1
           repo sync -cj 12
-          cd ndk
-          sudo apt install -y pipx
-          pipx install poetry
-          pyenv install 3.10.12
-          pyenv local 3.10.12
-          poetry env use 3.10
-          poetry install
-          poetry run ./checkbuild.py --no-build-tests --permissive-python-environment || true
+          python toolchain/llvm_android/build.py --no-build windows || true
+          echo $PATH
+          # cd ndk
+          # sudo apt install -y pipx
+          # pipx install poetry
+          # pyenv install 3.10.12
+          # pyenv local 3.10.12
+          # poetry env use 3.10
+          # poetry install
+          # poetry run ./checkbuild.py --no-build-tests --permissive-python-environment || true
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
