@@ -122,3 +122,9 @@ jobs:
             sudo mkdir -p "${GITHUB_WORKSPACE}"
             sudo chown -R "${WORKSPACE_OWNER}" "${GITHUB_WORKSPACE}"
           fi
+
+    - name: btrfs
+      run: |
+          sudo apt install btrfs-progs
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
