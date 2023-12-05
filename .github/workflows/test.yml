@@ -14,6 +14,13 @@ on:
         description: 'Swap space to create, in Megabytes.'
         required: false
         default: '4096'
+      overprovision-lvm:
+        description: |
+          Create the LVM disk images as sparse files, making the space required for the LVM image files *appear* unused on the
+          hosting volumes until actually allocated. Use with care, this can lead to surprising out-of-disk-space situations.
+          You should prefer adjusting root-reserve-mb/temp-reserve-mb over using this option.
+        required: false
+        default: 'false'
       build-mount-path:
         description: 'Absolute path to the mount point where the build space will be available, defaults to $GITHUB_WORKSPACE if unset.'
         required: false
@@ -29,18 +36,6 @@ on:
         description: 'Absolute file path for the LVM image created on the temp filesystem, the default is usually fine. Must reside on /mnt'
         required: false
         default: '/mnt/tmp-pv.img'
-      remove-dotnet:
-        description: 'Removes .NET runtime and libraries. (frees ~17 GB)'
-        required: false
-        default: 'false'
-      remove-android:
-        description: 'Removes Android SDKs and Tools. (frees ~11 GB)'
-        required: false
-        default: 'false'
-      remove-codeql:
-        description: 'Removes CodeQL Action Bundles. (frees ~5.4 GB)'
-        required: false
-        default: 'false'
 
 jobs:
   build:
@@ -70,21 +65,18 @@ jobs:
           echo "  Root PV loop path: ${{ inputs.pv-loop-path }}"
           echo "  Temp PV loop path: ${{ inputs.tmp-pv-loop-path }}"
           echo -n "  Removing:     "
-          if [[ ${{ inputs.remove-dotnet }} == 'true' ]]; then
-            echo -n "dotnet "
-          fi
-          if [[ ${{ inputs.remove-android }} == 'true' ]]; then
-            echo -n "android "
-          fi
-          if [[ ${{ inputs.remove-haskell }} == 'true' ]]; then
-            echo -n "haskell "
-          fi
-          if [[ ${{ inputs.remove-codeql }} == 'true' ]]; then
-            echo -n "codeql "
-          fi
-          if [[ ${{ inputs.remove-docker-images }} == 'true' ]]; then
-            echo -n "docker "
-          fi
+
+            # echo -n "dotnet "
+
+            # echo -n "android "
+
+            # echo -n "haskell "
+
+            # echo -n "codeql "
+
+
+            # echo -n "docker "
+
           echo
 
           # store owner of $GITHUB_WORKSPACE in case the action deletes it
@@ -95,21 +87,17 @@ jobs:
           sudo find "${BUILD_MOUNT_PATH}" -maxdepth 0 ! -empty -exec echo 'WARNING: directory [{}] is not empty, data loss might occur. Content:' \; -exec ls -al "{}" \;
 
           echo "Removing unwanted software... "
-          if [[ ${{ inputs.remove-dotnet }} == 'true' ]]; then
-            sudo rm -rf /usr/share/dotnet
-          fi
-          if [[ ${{ inputs.remove-android }} == 'true' ]]; then
-            sudo rm -rf /usr/local/lib/android
-          fi
-          if [[ ${{ inputs.remove-haskell }} == 'true' ]]; then
-            sudo rm -rf /opt/ghc
-          fi
-          if [[ ${{ inputs.remove-codeql }} == 'true' ]]; then
-            sudo rm -rf /opt/hostedtoolcache/CodeQL
-          fi
-          if [[ ${{ inputs.remove-docker-images }} == 'true' ]]; then
-            sudo docker image prune --all --force
-          fi
+
+            # sudo rm -rf /usr/share/dotnet
+
+            # sudo rm -rf /usr/local/lib/android
+
+            # sudo rm -rf /opt/ghc
+
+            # sudo rm -rf /opt/hostedtoolcache/CodeQL
+
+            # sudo docker image prune --all --force
+
           echo "... done"
 
           VG_NAME=buildvg
