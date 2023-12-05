@@ -6,5 +6,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: btrfs
+        run: |
+         dd if=/dev/zero of=./build.img bs=1 count=0 seek=7G
+          mkfs.btrfs -M ./build.img
+         mkdir ./build
+         sudo mount -o defaults,noatime,compress=zstd ./build.img ./build
+         sudo chown $UID ./build
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
