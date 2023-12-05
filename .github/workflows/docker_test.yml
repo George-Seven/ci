@@ -18,6 +18,6 @@ jobs:
           remove-docker-images: 'false'
       - name: btrfs
         run: |
-         sudo apt install btrfs-tools
+         sudo apt install btrfs-progs
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
