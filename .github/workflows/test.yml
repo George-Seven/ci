@@ -167,7 +167,7 @@ jobs:
           if [[ ${{ inputs.overprovision-lvm }} == 'true' ]]; then
             sudo mkfs.btrfs -L data "/dev/mapper/${VG_NAME}-buildlv"
           else
-            sudo mkfs.btrfs -L data -m0 "/dev/mapper/${VG_NAME}-buildlv"
+            sudo mkfs.btrfs -L data "/dev/mapper/${VG_NAME}-buildlv"
           fi
           sudo mount "/dev/mapper/${VG_NAME}-buildlv" "${BUILD_MOUNT_PATH}"
           sudo chown -R "${{ inputs.build-mount-path-ownership }}" "${BUILD_MOUNT_PATH}"
