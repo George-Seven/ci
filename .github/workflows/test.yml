@@ -14,13 +14,6 @@ on:
         description: 'Swap space to create, in Megabytes.'
         required: false
         default: '4096'
-      overprovision-lvm:
-        description: |
-          Create the LVM disk images as sparse files, making the space required for the LVM image files *appear* unused on the
-          hosting volumes until actually allocated. Use with care, this can lead to surprising out-of-disk-space situations.
-          You should prefer adjusting root-reserve-mb/temp-reserve-mb over using this option.
-        required: false
-        default: 'false'
       build-mount-path:
         description: 'Absolute path to the mount point where the build space will be available, defaults to $GITHUB_WORKSPACE if unset.'
         required: false
@@ -44,16 +37,8 @@ on:
         description: 'Removes Android SDKs and Tools. (frees ~11 GB)'
         required: false
         default: 'false'
-      remove-haskell:
-        description: 'Removes GHC (Haskell) artifacts. (frees ~2.7 GB)'
-        required: false
-        default: 'false'
       remove-codeql:
         description: 'Removes CodeQL Action Bundles. (frees ~5.4 GB)'
-        required: false
-        default: 'false'
-      remove-docker-images:
-        description: 'Removes cached Docker images. (frees ~3 GB)'
         required: false
         default: 'false'
 
