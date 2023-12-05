@@ -6,8 +6,5 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: zfs
-        run: |
-           sudo apt install zfsutils-linux
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
