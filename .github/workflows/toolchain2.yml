@@ -12,7 +12,7 @@ jobs:
           sudo apt purge -yq *make* *clang* *rust* &>/dev/null
           sudo apt autoremove -yq &>/dev/null
           sudo rm -rf /opt/hostedtoolcache /usr/local /usr/share/dotnet /usr/share/swift
-          # sudo rm -rf /home/runner/.cargo
+          sudo rm -rf /home/runner/.cargo
           sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore --init --init-path \"$(which tini)\"#g" /lib/systemd/system/docker.service
           sudo systemctl daemon-reload
           sudo systemctl stop docker.service
