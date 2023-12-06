@@ -9,9 +9,10 @@ jobs:
       - name: Remove unnecessary packages
         run: |
           sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(cabal-|dotnet-|ghc-|libmono|php|aspnetcore)') mono-runtime-common monodoc-manual ruby &>/dev/null
-          sudo apt purge -yq *make* *clang* *rust* &>/dev/null
+          # sudo apt purge -yq *make* *clang* *rust* &>/dev/null
           sudo apt autoremove -yq &>/dev/null
-          sudo rm -rf /opt/hostedtoolcache /usr/local /usr/share/dotnet /usr/share/swift /home/runner/.cargo
+          sudo rm -rf /opt/hostedtoolcache /usr/local /usr/share/dotnet /usr/share/swift
+          # sudo rm -rf /home/runner/.cargo
           
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
@@ -37,7 +38,7 @@ jobs:
           sudo systemctl restart docker.service
           docker run --name "$CONTAINER_NAME" -e "TERM=xterm" -d "$IMAGE_NAME" sleep infinity
           docker rmi -f "$IMAGE_NAME"
-          docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git gpg python3-pip python3-venv python-is-python3 openssh-client'
+          docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git python3-pip python3-venv python-is-python3 openssh-client; apt-get install -y gpg'
           docker exec -u root "$CONTAINER_NAME" bash -c '\
           mkdir -p $HOME/bin; \ 
           curl https://storage.googleapis.com/git-repo-downloads/repo -o $HOME/bin/repo; \
