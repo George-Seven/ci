@@ -19,7 +19,7 @@ jobs:
           sudo mkdir -p /var/lib/docker
           sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore --init --init-path \"$(which tini)\"#g" /lib/systemd/system/docker.service
           sudo systemctl daemon-reload
-          sudo systemctl restart docker.service
+          sudo systemctl start docker.service
           
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
