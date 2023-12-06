@@ -26,32 +26,37 @@ jobs:
 
       - name: Build Toolchain
         run: |
-          mkdir home
-          cd home
-          export HOME=$(pwd)
-          mkdir -p ~/bin
-          curl -L https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-          chmod a+x ~/bin/repo
-          export PATH="$HOME/bin:$PATH"
-          curl -L https://pyenv.run | bash
-          export PYENV_ROOT="$HOME/.pyenv"
-          [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-          eval "$(pyenv init -)"
-          eval "$(pyenv virtualenv-init -)"
-          mkdir llvm-toolchain
-          cd llvm-toolchain
-          repo init -u https://android.googlesource.com/platform/manifest -b llvm-toolchain --depth=1
-          repo sync -cj 12
-          python toolchain/llvm_android/build.py --no-build windows || true
-          echo $PATH
-          # cd ndk
-          # sudo apt install -y pipx
-          # pipx install poetry
-          # pyenv install 3.10.12
-          # pyenv local 3.10.12
-          # poetry env use 3.10
-          # poetry install
-          # poetry run ./checkbuild.py --no-build-tests --permissive-python-environment || true
+          CONTAINER_NAME="ubuntu"
+          IMAGE_NAME="ubuntu:jammy"
+          CHECKPOINT_DIR="$(pwd)/checkpoint"
+          sudo add-apt-repository ppa:criu/ppa -y
+          sudo apt update
+          sudo apt install criu tini
+          sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore --init --init-path \"$(which tini)\"#g" /lib/systemd/system/docker.service
+          sudo systemctl daemon-reload
+          sudo systemctl restart docker.service
+          docker run --name "$CONTAINER_NAME" -e "TERM=xterm" -d "$IMAGE_NAME" sleep infinity
+          docker rmi -f "$IMAGE_NAME"
+          docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git gpg python3-pip python3-venv python-is-python3 openssh-client'
+          docker exec -u root "$CONTAINER_NAME" bash -c '\
+          mkdir -p $HOME/bin; \ 
+          curl https://storage.googleapis.com/git-repo-downloads/repo -o $HOME/bin/repo; \
+          chmod a+x $HOME/bin/repo; \
+          export PATH=$HOME/bin:$PATH; \
+          curl -L https://pyenv.run | bash; \
+          export PYENV_ROOT=$HOME/.pyenv; \
+          [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"; \
+          eval "$(pyenv init -)"; \
+          eval "$(pyenv virtualenv-init -)"; \
+          cd $HOME; \
+          mkdir llvm-toolchain; \
+          cd llvm-toolchain; \
+          git config --global user.email "you@example.com"; \
+          git config --global user.name "Your Name"; \
+          yes | repo init -u https://android.googlesource.com/platform/manifest -b llvm-toolchain; \
+          repo sync -cj $(nproc --all); \
+          python toolchain/llvm_android/build.py --no-build windows || true \
+          ' || true
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
