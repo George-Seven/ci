@@ -43,7 +43,7 @@ jobs:
           sudo systemctl restart docker.service
           docker run --name "$CONTAINER_NAME" -e "TERM=xterm" -d "$IMAGE_NAME" sleep infinity
           docker rmi -f "$IMAGE_NAME"
-          docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git python3-pip python3-venv python-is-python3 openssh-client clang cmake; apt-get install -y gpg'
+          docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git python3-pip python3-venv python-is-python3 openssh-client build-essential cmake clang; apt-get install -y gpg'
           docker exec -u root "$CONTAINER_NAME" bash -c '\
           mkdir -p $HOME/bin; \ 
           curl https://storage.googleapis.com/git-repo-downloads/repo -o $HOME/bin/repo; \
