@@ -13,6 +13,12 @@ jobs:
           # sudo apt autoremove -yq &>/dev/null
           # sudo rm -rf /opt/hostedtoolcache /usr/local /usr/share/dotnet /usr/share/swift
           # sudo rm -rf /home/runner/.cargo
+          sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore --init --init-path \"$(which tini)\"#g" /lib/systemd/system/docker.service
+          sudo systemctl daemon-reload
+          sudo systemctl stop docker.service
+          sudo systemctl stop docker.socket
+          sudo rm -rf /var/lib/docker
+          sudo mkdir -p /var/lib/docker
           
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
@@ -24,6 +30,7 @@ jobs:
           remove-haskell: 'false'
           remove-codeql: 'false'
           remove-docker-images: 'false'
+          build-mount-path: '/var/lib/docker'
 
       - name: Build Toolchain
         run: |
@@ -34,8 +41,8 @@ jobs:
           sudo apt update
           sudo apt install criu tini
           sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore --init --init-path \"$(which tini)\"#g" /lib/systemd/system/docker.service
-          sudo systemctl daemon-reload
-          sudo systemctl restart docker.service
+          # sudo systemctl daemon-reload
+          # sudo systemctl restart docker.service
           docker run --name "$CONTAINER_NAME" -e "TERM=xterm" -d "$IMAGE_NAME" sleep infinity
           docker rmi -f "$IMAGE_NAME"
           docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git python3-pip python3-venv python-is-python3 openssh-client; apt-get install -y gpg'
