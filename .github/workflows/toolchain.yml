@@ -8,10 +8,10 @@ jobs:
     steps:
       - name: Remove unnecessary packages
         run: |
-          sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(cabal-|dotnet-|ghc-|libmono|php|aspnetcore)') mono-runtime-common monodoc-manual ruby &>/dev/null
+          # sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(cabal-|dotnet-|ghc-|libmono|php|aspnetcore)') mono-runtime-common monodoc-manual ruby &>/dev/null
           # sudo apt purge -yq *make* *clang* *rust* &>/dev/null
-          sudo apt autoremove -yq &>/dev/null
-          sudo rm -rf /opt/hostedtoolcache /usr/local /usr/share/dotnet /usr/share/swift
+          # sudo apt autoremove -yq &>/dev/null
+          # sudo rm -rf /opt/hostedtoolcache /usr/local /usr/share/dotnet /usr/share/swift
           # sudo rm -rf /home/runner/.cargo
           
       - name: Maximize build space
