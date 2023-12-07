@@ -63,25 +63,25 @@ jobs:
           #placeholder eval "$(pyenv virtualenv-init -)"; \
           #placeholder export PATH=/root/.local/bin:$PATH \
           #placeholder '
-          docker checkpoint create --checkpoint-dir "$CHECKPOINT_DIR" "$CONTAINER_NAME" "$CONTAINER_NAME"
-          docker rm -f "$CONTAINER_NAME"
-          docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
-          sudo chown -R "$(id -un)" "$CHECKPOINT_DIR"
-          sudo chgrp -R "$(id -un)" "$CHECKPOINT_DIR"
-          docker save "$CHECKPOINT_IMAGE_NAME" | zip -r9q "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
-          docker rmi -f "$CHECKPOINT_IMAGE_NAME"
-          printf "@ -\n@=$CONTAINER_NAME.tar\n" | zipnote -w "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
-          zip -r9q "$CHECKPOINT_DIR.zip" "$CHECKPOINT_DIR"
-          echo "CHECKPOINT_ZIP_NAME=$(basename "$CHECKPOINT_DIR").zip" >> $GITHUB_ENV
+          #placeholder docker checkpoint create --checkpoint-dir "$CHECKPOINT_DIR" "$CONTAINER_NAME" "$CONTAINER_NAME"
+          #placeholder docker rm -f "$CONTAINER_NAME"
+          #placeholder docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
+          #placeholder sudo chown -R "$(id -un)" "$CHECKPOINT_DIR"
+          #placeholder sudo chgrp -R "$(id -un)" "$CHECKPOINT_DIR"
+          #placeholder docker save "$CHECKPOINT_IMAGE_NAME" | zip -r9q "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
+          #placeholder docker rmi -f "$CHECKPOINT_IMAGE_NAME"
+          #placeholder printf "@ -\n@=$CONTAINER_NAME.tar\n" | zipnote -w "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
+          #placeholder zip -r9q "$CHECKPOINT_DIR.zip" "$CHECKPOINT_DIR"
+          #placeholder echo "CHECKPOINT_ZIP_NAME=$(basename "$CHECKPOINT_DIR").zip" >> $GITHUB_ENV
 
-      - name: Upload Release
-        uses: svenstaro/upload-release-action@v2
-        with:
-           repo_token: ${{ secrets.GITHUB_TOKEN }}
-           file: ${{ env.CHECKPOINT_ZIP_NAME }}.zip
-           asset_name: ${{ env.CHECKPOINT_ZIP_NAME }}.zip
-           tag: "ndk_arm64_image"
-           overwrite: true
+#placeholder       - name: Upload Release
+#placeholder         uses: svenstaro/upload-release-action@v2
+#placeholder         with:
+#placeholder            repo_token: ${{ secrets.GITHUB_TOKEN }}
+#placeholder            file: ${{ env.CHECKPOINT_ZIP_NAME }}.zip
+#placeholder            asset_name: ${{ env.CHECKPOINT_ZIP_NAME }}.zip
+#placeholder            tag: "ndk_arm64_image"
+#placeholder            overwrite: true
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
