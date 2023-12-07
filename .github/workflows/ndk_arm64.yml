@@ -39,7 +39,7 @@ jobs:
           sudo add-apt-repository ppa:criu/ppa -y
           sudo apt update
           sudo apt install criu
-          sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore\"#g" /lib/systemd/system/docker.service
+          sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore#g" /lib/systemd/system/docker.service
           sudo systemctl daemon-reload
           sudo systemctl restart docker.service
           sudo apt install qemu-user-static
