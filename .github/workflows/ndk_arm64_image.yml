@@ -74,7 +74,7 @@ jobs:
           sudo chown -R "$(id -un)" "$CHECKPOINT_DIR"
           sudo chgrp -R "$(id -un)" "$CHECKPOINT_DIR"
           docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
-          docker pause "$CONTAINER_NAME"
+          docker stop "$CONTAINER_NAME"
           docker rm -f "$CONTAINER_NAME"
           docker save "$CHECKPOINT_IMAGE_NAME" | zip -r9q "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
           docker rmi -f "$CHECKPOINT_IMAGE_NAME"
