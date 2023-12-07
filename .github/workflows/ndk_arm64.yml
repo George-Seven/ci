@@ -65,7 +65,7 @@ jobs:
           eval "$(pyenv init -)"; \
           eval "$(pyenv virtualenv-init -)"; \
           apt-get install -y --no-install-recommends pipx; \
-          pipx ensurepath; \
+          export PATH=/root/.local/bin:$PATH
           pipx install poetry; \
           pyenv install 3.10.12; \
           pyenv local 3.10.12; \
