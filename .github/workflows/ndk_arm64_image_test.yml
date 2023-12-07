@@ -63,13 +63,11 @@ jobs:
           #placeholder eval "$(pyenv virtualenv-init -)"; \
           #placeholder export PATH=/root/.local/bin:$PATH \
           #placeholder '
-          docker pause "$CONTAINER_NAME"
-          docker checkpoint create --leave-running --checkpoint-dir "$CHECKPOINT_DIR" "$CONTAINER_NAME" "$CONTAINER_NAME"
+          docker checkpoint create --checkpoint-dir "$CHECKPOINT_DIR" "$CONTAINER_NAME" "$CONTAINER_NAME"
+          docker rm -f "$CONTAINER_NAME"
+          docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
           sudo chown -R "$(id -un)" "$CHECKPOINT_DIR"
           sudo chgrp -R "$(id -un)" "$CHECKPOINT_DIR"
-          docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
-          docker stop "$CONTAINER_NAME"
-          docker rm -f "$CONTAINER_NAME"
           docker save "$CHECKPOINT_IMAGE_NAME" | zip -r9q "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
           docker rmi -f "$CHECKPOINT_IMAGE_NAME"
           printf "@ -\n@=$CONTAINER_NAME.tar\n" | zipnote -w "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
