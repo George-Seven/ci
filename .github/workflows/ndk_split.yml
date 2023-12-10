@@ -30,9 +30,11 @@ jobs:
           repo init -u https://android.googlesource.com/platform/manifest -b master-ndk --depth=1
           repo sync -cj $(nproc --all)
           cd ..
-          zip -r9 ndk.zip ndk
+          tar -I "gzip --best" -cf ndk.tar.gz -C . ./ndk
+          # zip -r9 ndk.zip ndk
           mkdir ndk_split
-          split --bytes=1999M ndk.zip ndk_split/ndk_
+          # split --bytes=1999M ndk.zip ndk_split/ndk_
+          split --bytes=1999M ndk.tar.gz ndk_split/ndk_
 
       - name: Upload Release
         uses: svenstaro/upload-release-action@v2
