@@ -42,6 +42,6 @@ jobs:
            repo_token: ${{ secrets.GITHUB_TOKEN }}
            file_glob: true
            file: ndk_split/ndk_*
-           tag: "ndk_split"
+           tag: "ndk_split_tar"
            make_latest: true
            overwrite: true
