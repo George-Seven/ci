@@ -1,0 +1,45 @@
+name: ndk split
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:      
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 512
+          swap-size-mb: 1024
+          remove-android: 'true'
+          remove-dotnet: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
+
+      - name: Split NDK
+        run: |
+          mkdir -p $HOME/bin
+          curl -L https://storage.googleapis.com/git-repo-downloads/repo -o $HOME/bin/repo
+          chmod a+x $HOME/bin/repo
+          export PATH="$HOME/bin:$PATH"
+          mkdir ndk
+          cd ndk
+          repo init -u https://android.googlesource.com/platform/manifest -b master-ndk --depth=1
+          repo sync -cj $(nproc --all)
+          cd ..
+          zip -r9 ndk.zip ndk
+          mkdir ndk_split
+          split --bytes=1999M ndk.zip ndk_split/ndk_
+
+      - name: Upload Release
+        uses: svenstaro/upload-release-action@v2
+        with:
+           repo_token: ${{ secrets.GITHUB_TOKEN }}
+           file_glob: true
+           file: ndk_split/ndk_*
+           tag: "ndk_split"
+           make_latest: true
+           overwrite: true
