@@ -123,12 +123,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Cleanup
+      - name: Delete Artifacts
         uses: geekyeggo/delete-artifact@v2
         with:
             failOnError: false
 
-#      - uses: dev-drprasad/delete-tag-and-release@v1.0
+#      - name: Delete Old Backup
+#        uses: dev-drprasad/delete-tag-and-release@v1.0
 #        with:
 #          github_token: ${{ secrets.GITHUB_TOKEN }}
 #          tag_name: "split_${{ env.CONTAINER_NAME }}"
