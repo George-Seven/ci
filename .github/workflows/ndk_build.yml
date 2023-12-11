@@ -28,8 +28,8 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: criu
-          path: criu
-  
+          path: criu/
+          
   build_ndk_image:
     runs-on: ubuntu-latest
     permissions:
@@ -60,20 +60,13 @@ jobs:
           build-mount-path: '/var/lib/docker'
 
       - name: Install CRIU
-        run: |
-          mkdir -p criu/build
+        uses: actions/download-artifact@v3
+        with:
+          name: criu
+          
+      - run: |
           cd criu
-          wget https://github.com/checkpoint-restore/criu/archive/refs/tags/v3.19.tar.gz -O criu.tar.gz
-          tar xf criu.tar.gz --strip-components=1 -C build
-          cd build
-          sed -i 's/#define DEFAULT_GHOST_LIMIT .*/#define DEFAULT_GHOST_LIMIT (1 << 31)/g' criu/include/cr_options.h
-          sudo apt install -y --no-install-recommends gcc make build-essential libprotobuf-dev libprotobuf-c-dev protobuf-c-compiler protobuf-compiler python3-protobuf libdrm-dev python3-future libgnutls28-dev libaio-dev libnl-3-dev libnet-dev libcap-dev libnftables-dev iproute2 libbsd-dev pkg-config python3-full python3-pip python-is-python3 asciidoc xmlto
-          python -m venv venv
-          . venv/bin/activate
-          pip install -U ipaddress
           sudo make install
-          deactivate
-          cd ../..
 
       - name: Split NDK
         run: |
