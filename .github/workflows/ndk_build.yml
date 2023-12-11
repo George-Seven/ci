@@ -1,9 +1,36 @@
 name: ndk build
 on:
   workflow_dispatch:
+env:
+  CONTAINER_NAME: "ubuntu"
+  IMAGE_NAME: "ubuntu:jammy"
 
 jobs:
-  build:
+  build_criu:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Build CRIU
+        run: |
+          mkdir -p criu
+          wget https://github.com/checkpoint-restore/criu/archive/refs/tags/v3.19.tar.gz -O criu.tar.gz
+          tar xf criu.tar.gz --strip-components=1 -C criu
+          cd criu
+          sed -i 's/#define DEFAULT_GHOST_LIMIT .*/#define DEFAULT_GHOST_LIMIT (1 << 31)/g' criu/include/cr_options.h
+          sudo apt install -y --no-install-recommends gcc make build-essential libprotobuf-dev libprotobuf-c-dev protobuf-c-compiler protobuf-compiler python3-protobuf libdrm-dev python3-future libgnutls28-dev libaio-dev libnl-3-dev libnet-dev libcap-dev libnftables-dev iproute2 libbsd-dev pkg-config python3-full python3-pip python-is-python3 asciidoc xmlto
+          python -m venv venv
+          . venv/bin/activate
+          pip install -U ipaddress
+          deactivate
+          cd ..
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: criu
+          path: criu
+  
+  build_ndk_image:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -50,8 +77,8 @@ jobs:
 
       - name: Split NDK
         run: |
-          CONTAINER_NAME="ubuntu"
-          IMAGE_NAME="ubuntu:jammy"
+          CONTAINER_NAME=${{ env.CONTAINER_NAME }}"
+          IMAGE_NAME=${{ env.IMAGE_NAME }}"
           CHECKPOINT_DIR="$(pwd)/checkpoint"
           CHECKPOINT_IMAGE_NAME="$(sed 's/:.*/:checkpoint/' <<< "$IMAGE_NAME")"
           # sudo add-apt-repository ppa:criu/ppa -y
@@ -98,14 +125,12 @@ jobs:
           docker save "$CHECKPOINT_IMAGE_NAME" | split --bytes=100M --filter 'gzip -1 > $FILE' - "$CHECKPOINT_DIR/$CONTAINER_NAME"_split_
           docker rmi -f "$CHECKPOINT_IMAGE_NAME"
           echo "CHECKPOINT_DIR=$CHECKPOINT_DIR" >> $GITHUB_ENV
-          echo "CHECKPOINT_IMAGE_NAME=$CHECKPOINT_IMAGE_NAME" >> $GITHUB_ENV
 
       - name: Delete Old Backup
-        continue-on-error: true
         uses: dev-drprasad/delete-tag-and-release@v1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: "split_${{ env.CHECKPOINT_IMAGE_NAME }}"
+          tag_name: "split_${{ env.CONTAINER_NAME }}"
 
       - name: Upload Release
         uses: svenstaro/upload-release-action@v2
@@ -113,6 +138,21 @@ jobs:
            repo_token: ${{ secrets.GITHUB_TOKEN }}
            file_glob: true
            file: ${{ env.CHECKPOINT_DIR }}/*
-           tag: "split_${{ env.CHECKPOINT_IMAGE_NAME }}"
+           tag: "split_${{ env.CONTAINER_NAME }}"
            make_latest: true
            overwrite: true
+
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Cleanup
+        uses: geekyeggo/delete-artifact@v2
+        with:
+            failOnError: false
+
+      - uses: dev-drprasad/delete-tag-and-release@v1.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: "split_${{ env.CONTAINER_NAME }}"
