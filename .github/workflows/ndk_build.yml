@@ -26,7 +26,8 @@ jobs:
           cd ..
           zip -r9 criu.zip criu
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
         with:
           name: criu
           path: criu.zip
@@ -61,12 +62,13 @@ jobs:
           remove-docker-images: 'false'
           build-mount-path: '/var/lib/docker'
 
-      - name: Install CRIU
+      - name: Download Artifact
         uses: actions/download-artifact@v3
         with:
           name: criu
-          
-      - run: |
+
+      - name: Download Artifact     
+        run: |
           unzip criu.zip
           cd criu
           sudo make install
