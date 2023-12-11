@@ -24,11 +24,12 @@ jobs:
           pip install -U ipaddress
           deactivate
           cd ..
+          zip -r9 criu.zip criu
 
       - uses: actions/upload-artifact@v3
         with:
           name: criu
-          path: criu/
+          path: criu.zip
           
   build_ndk_image:
     needs: build_criu
@@ -66,6 +67,7 @@ jobs:
           name: criu
           
       - run: |
+          unzip criu.zip
           cd criu
           sudo make install
 
