@@ -41,7 +41,7 @@ jobs:
       - name: Split NDK
         run: |
           CONTAINER_NAME=${{ env.CONTAINER_NAME }}"
-          IMAGE_NAME=${{ env.IMAGE_NAME }}"
+          IMAGE_NAME="${{ env.IMAGE_NAME }}"
           CHECKPOINT_DIR="$(pwd)/checkpoint"
           CHECKPOINT_IMAGE_NAME="$(sed 's/:.*/:checkpoint/' <<< "$IMAGE_NAME")"
           # sudo add-apt-repository ppa:criu/ppa -y
