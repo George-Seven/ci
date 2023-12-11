@@ -1,0 +1,89 @@
+name: ndk build
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:      
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 512
+          swap-size-mb: 1024
+          remove-android: 'true'
+          remove-dotnet: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
+
+      - name: Split NDK
+        run: |
+          CONTAINER_NAME="ubuntu"
+          IMAGE_NAME="ubuntu:jammy"
+          CHECKPOINT_DIR="$(pwd)/checkpoint"
+          sudo add-apt-repository ppa:criu/ppa -y
+          sudo apt update
+          sudo apt install criu tini
+          sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore --init --init-path \"$(which tini)\"#g" /lib/systemd/system/docker.service
+          sudo systemctl daemon-reload
+          sudo systemctl restart docker.service
+          docker run --name "$CONTAINER_NAME" -e "TERM=xterm" -d "$IMAGE_NAME" sleep infinity
+          docker rmi -f "$IMAGE_NAME"
+          docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git python3-pip python3-venv python-is-python3 openssh-client build-essential cmake clang; apt-get install -y gpg'
+          docker exec -u root "$CONTAINER_NAME" bash -c '\
+          mkdir -p $HOME/bin; \ 
+          curl https://storage.googleapis.com/git-repo-downloads/repo -o $HOME/bin/repo; \
+          chmod a+x $HOME/bin/repo; \
+          export PATH=$HOME/bin:$PATH; \
+          curl -L https://pyenv.run | bash; \
+          export PYENV_ROOT=$HOME/.pyenv; \
+          [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"; \
+          eval "$(pyenv init -)"; \
+          eval "$(pyenv virtualenv-init -)"; \
+          cd $HOME; \
+          mkdir llvm-toolchain; \
+          cd llvm-toolchain; \
+          git config --global user.email "you@example.com"; \
+          git config --global user.name "Your Name"; \
+          yes | repo init -u https://android.googlesource.com/platform/manifest -b llvm-toolchain; \
+          repo sync -cj $(nproc --all); \
+          # python toolchain/llvm_android/build.py --no-build windows --skip-tests
+
+          #placeholder docker checkpoint create --checkpoint-dir "$CHECKPOINT_DIR" "$CONTAINER_NAME" "$CONTAINER_NAME"
+          #placeholder docker rm -f "$CONTAINER_NAME"
+          #placeholder docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
+          #placeholder sudo chown -R "$(id -un)" "$CHECKPOINT_DIR"
+          #placeholder sudo chgrp -R "$(id -un)" "$CHECKPOINT_DIR"
+          #placeholder docker save "$CHECKPOINT_IMAGE_NAME" | zip -r9q "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
+          #placeholder docker rmi -f "$CHECKPOINT_IMAGE_NAME"
+          #placeholder printf "@ -\n@=$CONTAINER_NAME.tar\n" | zipnote -w "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
+          #placeholder zip -r9q "$CHECKPOINT_DIR.zip" "$CHECKPOINT_DIR"
+          #placeholder echo "CHECKPOINT_ZIP_NAME=$(basename "$CHECKPOINT_DIR").zip" >> $GITHUB_ENV
+          
+          tar -I "gzip --best" -cf ndk.tar.gz -C . ./ndk
+          # zip -r9 ndk.zip ndk
+          mkdir ndk_split
+          # split --bytes=1999M ndk.zip ndk_split/ndk_
+          split --bytes=1999M ndk.tar.gz ndk_split/ndk_
+          
+#placeholder       - name: Upload Release
+#placeholder         uses: svenstaro/upload-release-action@v2
+#placeholder         with:
+#placeholder            repo_token: ${{ secrets.GITHUB_TOKEN }}
+#placeholder            file: ${{ env.CHECKPOINT_ZIP_NAME }}.zip
+#placeholder            asset_name: ${{ env.CHECKPOINT_ZIP_NAME }}.zip
+#placeholder            tag: "ndk_arm64_image"
+#placeholder            overwrite: true
+
+      - name: Upload Release
+        uses: svenstaro/upload-release-action@v2
+        with:
+           repo_token: ${{ secrets.GITHUB_TOKEN }}
+           file_glob: true
+           file: ndk_split/ndk_*
+           tag: "ndk_split_tar"
+           make_latest: true
+           overwrite: true
