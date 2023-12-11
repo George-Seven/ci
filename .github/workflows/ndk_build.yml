@@ -12,6 +12,12 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Delete Old Backup
+        uses: dev-drprasad/delete-tag-and-release@v1.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: "split_${{ env.CONTAINER_NAME }}"
+
       - name: Remove unnecessary packages
         run: |
           # sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(cabal-|dotnet-|ghc-|libmono|php|aspnetcore)') mono-runtime-common monodoc-manual ruby &>/dev/null
@@ -89,12 +95,6 @@ jobs:
           docker save "$CHECKPOINT_IMAGE_NAME" | split --bytes=100M --filter 'gzip -1 > $FILE' - "$CHECKPOINT_DIR/split_$CONTAINER_NAME"_
           docker rmi -f "$CHECKPOINT_IMAGE_NAME"
           echo "CHECKPOINT_DIR=$CHECKPOINT_DIR" >> $GITHUB_ENV
-
-      - name: Delete Old Backup
-        uses: dev-drprasad/delete-tag-and-release@v1.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: "split_${{ env.CONTAINER_NAME }}"
 
       - name: Upload Release
         uses: svenstaro/upload-release-action@v2
