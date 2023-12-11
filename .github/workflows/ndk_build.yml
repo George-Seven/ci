@@ -69,7 +69,7 @@ jobs:
 
       - name: Download Artifact     
         run: |
-          unzip criu.zip
+          unzip -qq criu.zip
           cd criu
           sudo make install
 
