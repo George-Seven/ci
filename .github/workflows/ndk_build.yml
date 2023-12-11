@@ -32,15 +32,31 @@ jobs:
           remove-docker-images: 'false'
           build-mount-path: '/var/lib/docker'
 
+      - name: Install CRIU
+        run: |
+          mkdir -p criu/build
+          cd criu
+          wget https://github.com/checkpoint-restore/criu/archive/refs/tags/v3.19.tar.gz -O criu.tar.gz
+          tar xf criu.tar.gz --strip-components=1 -C build
+          cd build
+          sed -i 's/#define DEFAULT_GHOST_LIMIT .*/#define DEFAULT_GHOST_LIMIT (1 << 31)/g' criu/include/cr_options.h
+          sudo apt install -y --no-install-recommends gcc make build-essential libprotobuf-dev libprotobuf-c-dev protobuf-c-compiler protobuf-compiler python3-protobuf libdrm-dev python3-future libgnutls28-dev libaio-dev libnl-3-dev libnet-dev libcap-dev libnftables-dev iproute2 libbsd-dev pkg-config python3-full python3-pip python-is-python3 asciidoc xmlto
+          python -m venv venv
+          . venv/bin/activate
+          pip install -U ipaddress
+          sudo make install
+          deactivate
+          cd ../..
+
       - name: Split NDK
         run: |
           CONTAINER_NAME="ubuntu"
           IMAGE_NAME="ubuntu:jammy"
           CHECKPOINT_DIR="$(pwd)/checkpoint"
           CHECKPOINT_IMAGE_NAME="$(sed 's/:.*/:checkpoint/' <<< "$IMAGE_NAME")"
-          sudo add-apt-repository ppa:criu/ppa -y
-          sudo apt update
-          sudo apt install criu
+          # sudo add-apt-repository ppa:criu/ppa -y
+          # sudo apt update
+          # sudo apt install criu
           sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore#g" /lib/systemd/system/docker.service
           sudo systemctl daemon-reload
           sudo systemctl restart docker.service
