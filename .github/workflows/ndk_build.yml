@@ -7,7 +7,19 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    steps:      
+    steps:
+      - name: Remove unnecessary packages
+        run: |
+          # sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(cabal-|dotnet-|ghc-|libmono|php|aspnetcore)') mono-runtime-common monodoc-manual ruby &>/dev/null
+          # sudo apt purge -yq *make* *clang* *rust* &>/dev/null
+          # sudo apt autoremove -yq &>/dev/null
+          # sudo rm -rf /opt/hostedtoolcache /usr/local /usr/share/dotnet /usr/share/swift
+          # sudo rm -rf /home/runner/.cargo
+          sudo systemctl stop docker.service
+          sudo systemctl stop docker.socket
+          sudo rm -rf /var/lib/docker
+          sudo mkdir -p /var/lib/docker
+          
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
         with:
@@ -17,7 +29,8 @@ jobs:
           remove-dotnet: 'true'
           remove-haskell: 'true'
           remove-codeql: 'true'
-          remove-docker-images: 'true'
+          remove-docker-images: 'false'
+          build-mount-path: '/var/lib/docker'
 
       - name: Split NDK
         run: |
