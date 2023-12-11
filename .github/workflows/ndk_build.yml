@@ -53,7 +53,7 @@ jobs:
           docker rm -f "$CONTAINER_NAME"
           docker run --name "$CONTAINER_NAME" -e "TERM=xterm" -d "$CHECKPOINT_IMAGE_NAME" /usr/bin/tini-static -- sleep infinity
           docker rmi -f "$CHECKPOINT_IMAGE_NAME"
-          docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git python3-pip python3-venv python-is-python3 openssh-client build-essential cmake clang; apt-get install -y gpg'
+          docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog readline apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git python3-pip python3-venv python-is-python3 openssh-client build-essential cmake clang; apt-get install -y gpg'
           docker exec -u root "$CONTAINER_NAME" bash -c '\
           cd $HOME; \
           mkdir -p $HOME/bin; \ 
