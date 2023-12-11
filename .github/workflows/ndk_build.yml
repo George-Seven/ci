@@ -99,15 +99,6 @@ jobs:
           docker rmi -f "$CHECKPOINT_IMAGE_NAME"
           echo "CHECKPOINT_DIR=$CHECKPOINT_DIR" >> $GITHUB_ENV
           echo "CHECKPOINT_IMAGE_NAME=$CHECKPOINT_IMAGE_NAME" >> $GITHUB_ENV
-          
-      - name: Upload Release
-        uses: svenstaro/upload-release-action@v2
-        with:
-           repo_token: ${{ secrets.GITHUB_TOKEN }}
-           file_glob: true
-           file: checkpoint/
-           tag: "ndk_arm64_image"
-           overwrite: true
 
       - name: Delete Old Backup
         continue-on-error: true
