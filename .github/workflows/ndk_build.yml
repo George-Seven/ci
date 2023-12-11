@@ -40,11 +40,12 @@ jobs:
           curl https://storage.googleapis.com/git-repo-downloads/repo -o $HOME/bin/repo; \
           chmod a+x $HOME/bin/repo; \
           export PATH=$HOME/bin:$PATH; \
-          curl -L https://pyenv.run | bash; \
-          export PYENV_ROOT=$HOME/.pyenv; \
-          [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"; \
-          eval "$(pyenv init -)"; \
-          eval "$(pyenv virtualenv-init -)"; \
+          curl -L https://pyenv.run | bash \
+          '
+          # export PYENV_ROOT=$HOME/.pyenv; \
+          # [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"; \
+          # eval "$(pyenv init -)"; \
+          # eval "$(pyenv virtualenv-init -)"; \
           # mkdir llvm-toolchain; \
           # cd llvm-toolchain; \
           # git config --global user.email "you@example.com"; \
@@ -52,10 +53,9 @@ jobs:
           # yes | repo init -u https://android.googlesource.com/platform/manifest -b llvm-toolchain; \
           # repo sync -cj $(nproc --all); \
           # python toolchain/llvm_android/build.py --no-build windows --skip-tests \
-          '
           docker checkpoint create --checkpoint-dir "$CHECKPOINT_DIR" "$CONTAINER_NAME" "$CONTAINER_NAME"
-          docker rm -f "$CONTAINER_NAME"
           docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
+          docker rm -f "$CONTAINER_NAME"
           sudo chown -R "$(id -un)" "$CHECKPOINT_DIR"
           sudo chgrp -R "$(id -un)" "$CHECKPOINT_DIR"
           # docker save "$CHECKPOINT_IMAGE_NAME" | zip -r9q "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
