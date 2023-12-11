@@ -24,6 +24,7 @@ jobs:
           CONTAINER_NAME="ubuntu"
           IMAGE_NAME="ubuntu:jammy"
           CHECKPOINT_DIR="$(pwd)/checkpoint"
+          CHECKPOINT_IMAGE_NAME="$(sed 's/:.*/:checkpoint/' <<< "$IMAGE_NAME")"
           sudo add-apt-repository ppa:criu/ppa -y
           sudo apt update
           sudo apt install criu tini
