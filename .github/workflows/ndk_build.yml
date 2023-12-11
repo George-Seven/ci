@@ -47,7 +47,7 @@ jobs:
           sudo apt install criu
           sudo mv "$(which criu)" "$(which criu)".
           echo -e '#!/usr/bin/bash\nexec "$(which criu.)" --ghost-limit 107374182400 $@' | sudo tee "$(which criu. | sed -E 's/\.$//')"
-          chmod +x "$(which criu. | sed -E 's/\.$//')"
+          sudo chmod +x "$(which criu. | sed -E 's/\.$//')"
           sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore#g" /lib/systemd/system/docker.service
           sudo systemctl daemon-reload
           sudo systemctl restart docker.service
