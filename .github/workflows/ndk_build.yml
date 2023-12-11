@@ -50,24 +50,26 @@ jobs:
           git config --global user.name "Your Name"; \
           yes | repo init -u https://android.googlesource.com/platform/manifest -b llvm-toolchain; \
           repo sync -cj $(nproc --all); \
-          # python toolchain/llvm_android/build.py --no-build windows --skip-tests
+          # python toolchain/llvm_android/build.py --no-build windows --skip-tests \
+          '
 
-          #placeholder docker checkpoint create --checkpoint-dir "$CHECKPOINT_DIR" "$CONTAINER_NAME" "$CONTAINER_NAME"
-          #placeholder docker rm -f "$CONTAINER_NAME"
-          #placeholder docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
-          #placeholder sudo chown -R "$(id -un)" "$CHECKPOINT_DIR"
-          #placeholder sudo chgrp -R "$(id -un)" "$CHECKPOINT_DIR"
-          #placeholder docker save "$CHECKPOINT_IMAGE_NAME" | zip -r9q "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
-          #placeholder docker rmi -f "$CHECKPOINT_IMAGE_NAME"
-          #placeholder printf "@ -\n@=$CONTAINER_NAME.tar\n" | zipnote -w "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
-          #placeholder zip -r9q "$CHECKPOINT_DIR.zip" "$CHECKPOINT_DIR"
-          #placeholder echo "CHECKPOINT_ZIP_NAME=$(basename "$CHECKPOINT_DIR").zip" >> $GITHUB_ENV
-          
-          tar -I "gzip --best" -cf ndk.tar.gz -C . ./ndk
+          docker checkpoint create --checkpoint-dir "$CHECKPOINT_DIR" "$CONTAINER_NAME" "$CONTAINER_NAME"
+          docker rm -f "$CONTAINER_NAME"
+          docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
+          sudo chown -R "$(id -un)" "$CHECKPOINT_DIR"
+          sudo chgrp -R "$(id -un)" "$CHECKPOINT_DIR"
+          docker save "$CHECKPOINT_IMAGE_NAME" | zip -r9q "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
+          docker rmi -f "$CHECKPOINT_IMAGE_NAME"
+          printf "@ -\n@=$CONTAINER_NAME.tar\n" | zipnote -w "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
+          zip -r9q "$CHECKPOINT_DIR.zip" "$CHECKPOINT_DIR"
+          # echo "CHECKPOINT_ZIP_NAME=$(basename "$CHECKPOINT_DIR").zip" >> $GITHUB_ENV
+          echo "CHECKPOINT_ZIP_NAME=$(basename "$CHECKPOINT_DIR").zip" >> $GITHUB_ENV
+          # tar -I "gzip --best" -cf ndk.tar.gz -C . ./ndk
           # zip -r9 ndk.zip ndk
-          mkdir ndk_split
+          mkdir -p "$CHECKPOINT_DIR/checkpoint_split"
           # split --bytes=1999M ndk.zip ndk_split/ndk_
-          split --bytes=1999M ndk.tar.gz ndk_split/ndk_
+          split --bytes=1999M "$CHECKPOINT_DIR/$CONTAINER_NAME.zip" "$CHECKPOINT_DIR/checkpoint_split/$CONTAINER_NAME"
+          rm -rf "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
           
 #placeholder       - name: Upload Release
 #placeholder         uses: svenstaro/upload-release-action@v2
