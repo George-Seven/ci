@@ -9,8 +9,6 @@ env:
 jobs:        
   build_ndk_image:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
     permissions:
       contents: write
     steps:
@@ -40,7 +38,7 @@ jobs:
 
       - name: Split NDK
         run: |
-          CONTAINER_NAME=${{ env.CONTAINER_NAME }}"
+          CONTAINER_NAME="${{ env.CONTAINER_NAME }}"
           IMAGE_NAME="${{ env.IMAGE_NAME }}"
           CHECKPOINT_DIR="$(pwd)/checkpoint"
           CHECKPOINT_IMAGE_NAME="$(sed 's/:.*/:checkpoint/' <<< "$IMAGE_NAME")"
@@ -129,7 +127,7 @@ jobs:
         with:
             failOnError: false
 
-      - uses: dev-drprasad/delete-tag-and-release@v1.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: "split_${{ env.CONTAINER_NAME }}"
+#      - uses: dev-drprasad/delete-tag-and-release@v1.0
+#        with:
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#          tag_name: "split_${{ env.CONTAINER_NAME }}"
