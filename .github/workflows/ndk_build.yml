@@ -40,12 +40,19 @@ jobs:
           CHECKPOINT_IMAGE_NAME="$(sed 's/:.*/:checkpoint/' <<< "$IMAGE_NAME")"
           sudo add-apt-repository ppa:criu/ppa -y
           sudo apt update
-          sudo apt install criu tini
-          sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore --init --init-path \"$(which tini)\"#g" /lib/systemd/system/docker.service
+          sudo apt install criu
+          sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore#g" /lib/systemd/system/docker.service
           sudo systemctl daemon-reload
           sudo systemctl restart docker.service
-          docker run --name "$CONTAINER_NAME" -e "TERM=xterm" -d "$IMAGE_NAME" sleep infinity
-          # docker rmi -f "$IMAGE_NAME"
+          wget https://github.com/krallin/tini/releases/download/v0.19.0/tini-static-amd64 -O tini-static
+          chmod +x tini-static
+          docker create --name "$CONTAINER_NAME" "$IMAGE_NAME"
+          docker cp tini-static "$CONTAINER_NAME":/usr/bin/tini-static
+          docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
+          docker rmi -f "$IMAGE_NAME"
+          docker rm -f "$CONTAINER_NAME"
+          docker run --name "$CONTAINER_NAME" -e "TERM=xterm" -d "$CHECKPOINT_IMAGE_NAME" /usr/bin/tini-static -- sleep infinity
+          docker rmi -f "$CHECKPOINT_IMAGE_NAME"
           docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git python3-pip python3-venv python-is-python3 openssh-client build-essential cmake clang; apt-get install -y gpg'
           docker exec -u root "$CONTAINER_NAME" bash -c '\
           cd $HOME; \
