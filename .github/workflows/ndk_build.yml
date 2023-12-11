@@ -45,19 +45,9 @@ jobs:
           sudo add-apt-repository ppa:criu/ppa -y
           sudo apt update
           sudo apt install criu
-          # mkdir -p criu/build
-          # cd criu
-          # wget https://github.com/checkpoint-restore/criu/archive/refs/tags/v3.19.tar.gz -O criu.tar.gz
-          # tar xf criu.tar.gz --strip-components=1 -C build
-          # cd build
-          # sed -i 's/#define DEFAULT_GHOST_LIMIT .*/#define DEFAULT_GHOST_LIMIT (1 << 31)/g' criu/include/cr_options.h
-          # sudo apt install -y --no-install-recommends gcc make build-essential libprotobuf-dev libprotobuf-c-dev protobuf-c-compiler protobuf-compiler python3-protobuf libdrm-dev python3-future libgnutls28-dev libaio-dev libnl-3-dev libnet-dev libcap-dev libnftables-dev iproute2 libbsd-dev pkg-config python3-full python3-pip python-is-python3 asciidoc xmlto
-          # python -m venv venv
-          # . venv/bin/activate
-          # pip install -U ipaddress
-          # sudo make install
-          # deactivate
-          # cd ../..
+          sudo mv "$(which criu)" "$(which criu)".
+          echo -e '#!/usr/bin/bash\nexec "$(which criu.)" --ghost-limit 107374182400 $@' | sudo tee "$(which criu. | sed -E 's/\.$//')"
+          chmod +x "$(which criu. | sed -E 's/\.$//')"
           sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore#g" /lib/systemd/system/docker.service
           sudo systemctl daemon-reload
           sudo systemctl restart docker.service
@@ -70,15 +60,15 @@ jobs:
           docker rm -f "$CONTAINER_NAME"
           docker run --name "$CONTAINER_NAME" -e "TERM=xterm" -d "$CHECKPOINT_IMAGE_NAME" /usr/bin/tini-static -- sleep infinity
           docker rmi -f "$CHECKPOINT_IMAGE_NAME"
-          # docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog readline apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git python3-pip python3-venv python-is-python3 openssh-client build-essential cmake clang; apt-get install -y gpg'
-          # docker exec -u root "$CONTAINER_NAME" bash -c '\
-          # cd $HOME; \
-          # mkdir -p $HOME/bin; \ 
-          # curl https://storage.googleapis.com/git-repo-downloads/repo -o $HOME/bin/repo; \
-          # chmod a+x $HOME/bin/repo; \
-          # export PATH=$HOME/bin:$PATH; \
-          # curl -L https://pyenv.run | bash \
-          # '
+          docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog readline apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git python3-pip python3-venv python-is-python3 openssh-client build-essential cmake clang; apt-get install -y gpg'
+          docker exec -u root "$CONTAINER_NAME" bash -c '\
+          cd $HOME; \
+          mkdir -p $HOME/bin; \ 
+          curl https://storage.googleapis.com/git-repo-downloads/repo -o $HOME/bin/repo; \
+          chmod a+x $HOME/bin/repo; \
+          export PATH=$HOME/bin:$PATH; \
+          curl -L https://pyenv.run | bash \
+          '
           # export PYENV_ROOT=$HOME/.pyenv; \
           # [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"; \
           # eval "$(pyenv init -)"; \
@@ -116,19 +106,14 @@ jobs:
            make_latest: true
            overwrite: true
 
-  cleanup:
-    needs: build_ndk_image
-    if: always()
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Delete Artifacts
-        uses: geekyeggo/delete-artifact@v2
-        with:
-            failOnError: false
-
-#      - name: Delete Old Backup
+#  cleanup:
+#    needs: build_ndk_image
+#    if: always()
+#    runs-on: ubuntu-latest
+#    permissions:
+#      contents: write
+#    steps:
+#      - name: Cleanup
 #        uses: dev-drprasad/delete-tag-and-release@v1.0
 #        with:
 #          github_token: ${{ secrets.GITHUB_TOKEN }}
