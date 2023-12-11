@@ -14,6 +14,7 @@ jobs:
     steps:
       - name: Remove unnecessary packages
         run: |
+          exit 1
           # sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(cabal-|dotnet-|ghc-|libmono|php|aspnetcore)') mono-runtime-common monodoc-manual ruby &>/dev/null
           # sudo apt purge -yq *make* *clang* *rust* &>/dev/null
           # sudo apt autoremove -yq &>/dev/null
@@ -118,6 +119,7 @@ jobs:
 
   cleanup:
     needs: build_ndk_image
+    if: always()
     runs-on: ubuntu-latest
     permissions:
       contents: write
