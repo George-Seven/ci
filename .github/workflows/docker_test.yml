@@ -6,5 +6,35 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Delete Old Backup
+        uses: dev-drprasad/delete-tag-and-release@v1.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: "split_${{ env.CONTAINER_NAME }}"
+
+      - name: Remove unnecessary packages
+        run: |
+          # sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(cabal-|dotnet-|ghc-|libmono|php|aspnetcore)') mono-runtime-common monodoc-manual ruby &>/dev/null
+          # sudo apt purge -yq *make* *clang* *rust* &>/dev/null
+          # sudo apt autoremove -yq &>/dev/null
+          # sudo rm -rf /opt/hostedtoolcache /usr/local /usr/share/dotnet /usr/share/swift
+          # sudo rm -rf /home/runner/.cargo
+          sudo systemctl stop docker.service
+          sudo systemctl stop docker.socket
+          sudo rm -rf /var/lib/docker
+          sudo mkdir -p /var/lib/docker
+          
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 512
+          swap-size-mb: 1024
+          remove-android: 'true'
+          remove-dotnet: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'false'
+          build-mount-path: '/var/lib/docker'
+
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
