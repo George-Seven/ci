@@ -1,0 +1,233 @@
+name: ndk build btrfs
+on:
+  workflow_dispatch:
+    inputs:
+      root-reserve-mb:
+        description: 'Space to be left free on the root filesystem, in Megabytes.'
+        required: false
+        default: '1024'
+      temp-reserve-mb:
+        description: 'Space to be left free on the temp filesystem (/mnt), in Megabytes.'
+        required: false
+        default: '100'
+      swap-size-mb:
+        description: 'Swap space to create, in Megabytes.'
+        required: false
+        default: '4096'
+      overprovision-lvm:
+        description: |
+          Create the LVM disk images as sparse files, making the space required for the LVM image files *appear* unused on the
+          hosting volumes until actually allocated. Use with care, this can lead to surprising out-of-disk-space situations.
+          You should prefer adjusting root-reserve-mb/temp-reserve-mb over using this option.
+        required: false
+        default: 'false'
+      build-mount-path:
+        description: 'Absolute path to the mount point where the build space will be available, defaults to $GITHUB_WORKSPACE if unset.'
+        required: false
+        default: '/var/lib/docker'
+      build-mount-path-ownership:
+        description: 'Ownership of the mount point path, defaults to standard "runner" user and group.'
+        required: false
+        default: 'runner:runner'
+      pv-loop-path:
+        description: 'Absolute file path for the LVM image created on the root filesystem, the default is usually fine.'
+        required: false
+        default: '/pv.img'
+      tmp-pv-loop-path:
+        description: 'Absolute file path for the LVM image created on the temp filesystem, the default is usually fine. Must reside on /mnt'
+        required: false
+        default: '/mnt/tmp-pv.img'
+
+env:
+  CONTAINER_NAME: "ubuntu"
+  IMAGE_NAME: "ubuntu:jammy"
+
+jobs:        
+  build_ndk_image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove unnecessary packages
+        run: |
+          # sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(cabal-|dotnet-|ghc-|libmono|php|aspnetcore)') mono-runtime-common monodoc-manual ruby &>/dev/null
+          # sudo apt purge -yq *make* *clang* *rust* &>/dev/null
+          # sudo apt autoremove -yq &>/dev/null
+          # sudo rm -rf /opt/hostedtoolcache /usr/local /usr/share/dotnet /usr/share/swift
+          # sudo rm -rf /home/runner/.cargo
+          sudo systemctl stop docker.service
+          sudo systemctl stop docker.socket
+          sudo rm -rf /var/lib/docker
+          sudo mkdir -p /var/lib/docker
+          
+      - name: btrfs
+        run: |
+            sudo apt install btrfs-progs
+            
+      - name: Maximize build disk space
+        shell: bash
+        run: |
+            set -euo pipefail
+  
+            BUILD_MOUNT_PATH="${{ inputs.build-mount-path }}"
+            if [[ -z "${BUILD_MOUNT_PATH}" ]]; then
+              BUILD_MOUNT_PATH="${GITHUB_WORKSPACE}"
+            fi
+  
+            echo "Arguments:"
+            echo
+            echo "  Root reserve:      ${{ inputs.root-reserve-mb }} MiB"
+            echo "  Temp reserve:      ${{ inputs.temp-reserve-mb }} MiB"
+            echo "  Swap space:        ${{ inputs.swap-size-mb }} MiB"
+            echo "  Overprovision LVM: ${{ inputs.overprovision-lvm }}"
+            echo "  Mount path:        ${BUILD_MOUNT_PATH}"
+            echo "  Root PV loop path: ${{ inputs.pv-loop-path }}"
+            echo "  Temp PV loop path: ${{ inputs.tmp-pv-loop-path }}"
+            echo -n "  Removing:     "
+  
+              # echo -n "dotnet "
+  
+              # echo -n "android "
+  
+              # echo -n "haskell "
+  
+              # echo -n "codeql "
+  
+              # echo -n "docker "
+  
+            echo
+  
+            # store owner of $GITHUB_WORKSPACE in case the action deletes it
+            WORKSPACE_OWNER="$(stat -c '%U:%G' "${GITHUB_WORKSPACE}")"
+  
+            # ensure mount path exists before the action
+            sudo mkdir -p "${BUILD_MOUNT_PATH}"
+            sudo find "${BUILD_MOUNT_PATH}" -maxdepth 0 ! -empty -exec echo 'WARNING: directory [{}] is not empty, data loss might occur. Content:' \; -exec ls -al "{}" \;
+  
+            echo "Removing unwanted software... "
+  
+              # sudo rm -rf /usr/share/dotnet
+  
+              # sudo rm -rf /usr/local/lib/android
+  
+              # sudo rm -rf /opt/ghc
+  
+              # sudo rm -rf /opt/hostedtoolcache/CodeQL
+  
+              # sudo docker image prune --all --force
+  
+            echo "... done"
+  
+            VG_NAME=buildvg
+  
+            # github runners have an active swap file in /mnt/swapfile
+            # we want to reuse the temp disk, so first unmount swap and clean the temp disk
+            echo "Unmounting and removing swap file."
+            sudo swapoff -a
+            sudo rm -f /mnt/swapfile
+  
+            echo "Creating LVM Volume."
+            echo "  Creating LVM PV on root fs."
+            # create loop pv image on root fs
+            ROOT_RESERVE_KB=$(expr ${{ inputs.root-reserve-mb }} \* 1024)
+            ROOT_FREE_KB=$(df --block-size=1024 --output=avail / | tail -1)
+            ROOT_LVM_SIZE_KB=$(expr $ROOT_FREE_KB - $ROOT_RESERVE_KB)
+            ROOT_LVM_SIZE_BYTES=$(expr $ROOT_LVM_SIZE_KB \* 1024)
+            sudo touch "${{ inputs.pv-loop-path }}" && sudo fallocate -z -l "${ROOT_LVM_SIZE_BYTES}" "${{ inputs.pv-loop-path }}"
+            export ROOT_LOOP_DEV=$(sudo losetup --find --show "${{ inputs.pv-loop-path }}")
+            sudo pvcreate -f "${ROOT_LOOP_DEV}"
+  
+            # create pv on temp disk
+            echo "  Creating LVM PV on temp fs."
+            TMP_RESERVE_KB=$(expr ${{ inputs.temp-reserve-mb }} \* 1024)
+            TMP_FREE_KB=$(df --block-size=1024 --output=avail /mnt | tail -1)
+            TMP_LVM_SIZE_KB=$(expr $TMP_FREE_KB - $TMP_RESERVE_KB)
+            TMP_LVM_SIZE_BYTES=$(expr $TMP_LVM_SIZE_KB \* 1024)
+            sudo touch "${{ inputs.tmp-pv-loop-path }}" && sudo fallocate -z -l "${TMP_LVM_SIZE_BYTES}" "${{ inputs.tmp-pv-loop-path }}"
+            export TMP_LOOP_DEV=$(sudo losetup --find --show "${{ inputs.tmp-pv-loop-path }}")
+            sudo pvcreate -f "${TMP_LOOP_DEV}"
+  
+            # create volume group from these pvs
+            sudo vgcreate "${VG_NAME}" "${TMP_LOOP_DEV}" "${ROOT_LOOP_DEV}"
+  
+            echo "Recreating swap"
+            # create and activate swap
+            sudo lvcreate -L "${{ inputs.swap-size-mb }}M" -n swap "${VG_NAME}"
+            sudo mkswap "/dev/mapper/${VG_NAME}-swap"
+            sudo swapon "/dev/mapper/${VG_NAME}-swap"
+  
+            echo "Creating build volume"
+            # create and mount build volume
+            sudo lvcreate -l 100%FREE -n buildlv "${VG_NAME}"
+            if [[ ${{ inputs.overprovision-lvm }} == 'true' ]]; then
+              sudo mkfs.btrfs -L data "/dev/mapper/${VG_NAME}-buildlv"
+            else
+              sudo mkfs.btrfs -L data "/dev/mapper/${VG_NAME}-buildlv"
+            fi
+            sudo mount "/dev/mapper/${VG_NAME}-buildlv" "${BUILD_MOUNT_PATH}"
+            sudo chown -R "${{ inputs.build-mount-path-ownership }}" "${BUILD_MOUNT_PATH}"
+  
+            # if build mount path is a parent of $GITHUB_WORKSPACE, and has been deleted, recreate it
+            if [[ ! -d "${GITHUB_WORKSPACE}" ]]; then
+              sudo mkdir -p "${GITHUB_WORKSPACE}"
+              sudo chown -R "${WORKSPACE_OWNER}" "${GITHUB_WORKSPACE}"
+            fi
+
+      - name: Split NDK
+        run: |
+          HOME=/var/lib/docker
+          cd $HOME
+          CONTAINER_NAME="${{ env.CONTAINER_NAME }}"
+          IMAGE_NAME="${{ env.IMAGE_NAME }}"
+          CHECKPOINT_DIR="$(pwd)/checkpoint"
+          CHECKPOINT_IMAGE_NAME="$(sed 's/:.*/:checkpoint/' <<< "$IMAGE_NAME")"
+          sudo add-apt-repository ppa:criu/ppa -y
+          sudo apt update
+          sudo apt install criu
+          sudo mv "$(which criu)" "$(which criu)".
+          echo -e '#!/usr/bin/bash\nexec "$(which criu.)" --ghost-limit 107374182400 $@' | sudo tee "$(which criu. | sed -E 's/\.$//')"
+          sudo chmod +x "$(which criu. | sed -E 's/\.$//')"
+          sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore -s btrfs#g" /lib/systemd/system/docker.service
+          sudo systemctl daemon-reload
+          sudo systemctl restart docker.service
+          wget https://github.com/krallin/tini/releases/download/v0.19.0/tini-static-amd64 -O tini-static
+          chmod +x tini-static
+          docker create --name "$CONTAINER_NAME" "$IMAGE_NAME"
+          docker cp tini-static "$CONTAINER_NAME":/usr/bin/tini-static
+          docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
+          docker rmi -f "$IMAGE_NAME"
+          docker rm -f "$CONTAINER_NAME"
+          docker run --name "$CONTAINER_NAME" -e "TERM=xterm" -d "$CHECKPOINT_IMAGE_NAME" /usr/bin/tini-static -- sleep infinity
+          docker rmi -f "$CHECKPOINT_IMAGE_NAME"
+          docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog readline apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git python3-pip python3-venv python-is-python3 openssh-client build-essential cmake clang; apt-get install -y gpg'
+          docker exec -u root "$CONTAINER_NAME" bash -c '\
+          cd $HOME; \
+          mkdir -p $HOME/bin; \ 
+          curl https://storage.googleapis.com/git-repo-downloads/repo -o $HOME/bin/repo; \
+          chmod a+x $HOME/bin/repo; \
+          export PATH=$HOME/bin:$PATH; \
+          curl -L https://pyenv.run | bash; \
+          export PYENV_ROOT=$HOME/.pyenv; \
+          [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"; \
+          eval "$(pyenv init -)"; \
+          eval "$(pyenv virtualenv-init -)"; \
+          mkdir llvm-toolchain; \
+          cd llvm-toolchain; \
+          git config --global user.email "you@example.com"; \
+          git config --global user.name "Your Name"; \
+          yes | repo init -u https://android.googlesource.com/platform/manifest -b llvm-toolchain; \
+          repo sync -cj $(nproc --all) \
+          '
+          # python toolchain/llvm_android/build.py --no-build windows --skip-tests \
+          docker checkpoint create --checkpoint-dir "$CHECKPOINT_DIR" "$CONTAINER_NAME" "$CONTAINER_NAME"
+          docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
+          docker rm -f "$CONTAINER_NAME"
+          sudo chown -R "$(id -un)" "$CHECKPOINT_DIR"
+          sudo chgrp -R "$(id -un)" "$CHECKPOINT_DIR"
+          # docker save "$CHECKPOINT_IMAGE_NAME" | zip -r9q "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
+          docker save "$CHECKPOINT_IMAGE_NAME" | gzip -1 -c | split --bytes=100M - "$CHECKPOINT_DIR/split_$CONTAINER_NAME"_
+          # docker save "$CHECKPOINT_IMAGE_NAME" | split --bytes=100M --filter 'gzip --best > $FILE' - "$CHECKPOINT_DIR/split_$CONTAINER_NAME"_
+          docker rmi -f "$CHECKPOINT_IMAGE_NAME"
+          echo "CHECKPOINT_DIR=$CHECKPOINT_DIR" >> $GITHUB_ENV
+
+    - name: Setup tmate session
+      if: always()
+      uses: mxschmitt/action-tmate@v3
