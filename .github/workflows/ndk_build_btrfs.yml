@@ -228,6 +228,6 @@ jobs:
           docker rmi -f "$CHECKPOINT_IMAGE_NAME"
           echo "CHECKPOINT_DIR=$CHECKPOINT_DIR" >> $GITHUB_ENV
 
-    - name: Setup tmate session
-      if: always()
-      uses: mxschmitt/action-tmate@v3
+      - name: Setup tmate session
+        if: always()
+        uses: mxschmitt/action-tmate@v3
