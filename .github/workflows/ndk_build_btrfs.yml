@@ -1,4 +1,4 @@
-name: ndk build btrfs
+name: ndk build in btrfs
 on:
   workflow_dispatch:
     inputs:
@@ -45,7 +45,14 @@ env:
 jobs:        
   build_ndk_image:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
+      - name: Delete Old Backup
+        uses: dev-drprasad/delete-tag-and-release@v1.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: "split_${{ env.CONTAINER_NAME }}" 
       - name: Remove unnecessary packages
         run: |
           sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(cabal-|dotnet-|ghc-|libmono|php|aspnetcore)') mono-runtime-common monodoc-manual ruby &>/dev/null
@@ -58,7 +65,7 @@ jobs:
           sudo rm -rf /var/lib/docker
           sudo mkdir -p /var/lib/docker
           
-      - name: btrfs
+      - name: Install btrfs Tools
         run: |
             sudo apt install btrfs-progs
             
@@ -190,8 +197,8 @@ jobs:
           sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore -s btrfs#g" /lib/systemd/system/docker.service
           sudo systemctl daemon-reload
           sudo systemctl restart docker.service
-          sudo chown -R $(id -un) $HOME
-          sudo chgrp -R $(id -un) $HOME
+          sudo chown -R "$(id -un)" $HOME
+          sudo chgrp -R "$(id -un)" $HOME
           wget https://github.com/krallin/tini/releases/download/v0.19.0/tini-static-amd64 -O tini-static
           chmod +x tini-static
           docker create --name "$CONTAINER_NAME" "$IMAGE_NAME"
@@ -232,6 +239,13 @@ jobs:
           docker rmi -f "$CHECKPOINT_IMAGE_NAME"
           echo "CHECKPOINT_DIR=$CHECKPOINT_DIR" >> $GITHUB_ENV
 
-      - name: Setup tmate session
-        if: always()
-        uses: mxschmitt/action-tmate@v3
+      - name: Upload Release
+        uses: svenstaro/upload-release-action@v2
+        with:
+           repo_token: ${{ secrets.GITHUB_TOKEN }}
+           file_glob: true
+           file: ${{ env.CHECKPOINT_DIR }}/*
+           tag: "split_${{ env.CONTAINER_NAME }}"
+           make_latest: true
+           overwrite: true
+
