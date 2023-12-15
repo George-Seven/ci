@@ -2,81 +2,9 @@ name: docker test
 on:
   workflow_dispatch:
 
-env:
-  CONTAINER_NAME: "ubuntu"
-  IMAGE_NAME: "ubuntu:jammy"
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Remove unnecessary packages
-        run: |
-          # sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(cabal-|dotnet-|ghc-|libmono|php|aspnetcore)') mono-runtime-common monodoc-manual ruby &>/dev/null
-          # sudo apt purge -yq *make* *clang* *rust* &>/dev/null
-          # sudo apt autoremove -yq &>/dev/null
-          # sudo rm -rf /opt/hostedtoolcache /usr/local /usr/share/dotnet /usr/share/swift
-          # sudo rm -rf /home/runner/.cargo
-          sudo systemctl stop docker.service
-          sudo systemctl stop docker.socket
-          sudo rm -rf /var/lib/docker
-          sudo mkdir -p /var/lib/docker
-
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@master
-        with:
-          root-reserve-mb: 512
-          swap-size-mb: 1024
-          remove-android: 'true'
-          remove-dotnet: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
-          remove-docker-images: 'false'
-          build-mount-path: '/var/lib/docker'
-
-      - name: Build NDK
-        run: |
-          CONTAINER_NAME="${{ env.CONTAINER_NAME }}"
-          IMAGE_NAME="${{ env.IMAGE_NAME }}"
-          CHECKPOINT_DIR="$(pwd)/checkpoint"
-          CHECKPOINT_IMAGE_NAME="$(sed 's/:.*/:checkpoint/' <<< "$IMAGE_NAME")"
-          sudo add-apt-repository ppa:criu/ppa -y
-          sudo apt update
-          sudo apt install criu
-          sudo mv "$(which criu)" "$(which criu)".
-          echo -e '#!/usr/bin/bash\nexec "$(which criu.)" --ghost-limit 107374182400 $@' | sudo tee "$(which criu. | sed -E 's/\.$//')"
-          sudo chmod +x "$(which criu. | sed -E 's/\.$//')"
-          sudo sed -i -E "s#(.*ExecStart=/usr/bin/dockerd.*)#\1 --experimental --live-restore#g" /lib/systemd/system/docker.service
-          sudo systemctl daemon-reload
-          sudo systemctl restart docker.service
-          wget https://github.com/krallin/tini/releases/download/v0.19.0/tini-static-amd64 -O tini-static
-          chmod +x tini-static
-          docker create --name "$CONTAINER_NAME" "$IMAGE_NAME"
-          docker cp tini-static "$CONTAINER_NAME":/usr/bin/tini-static
-          docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
-          docker rmi -f "$IMAGE_NAME"
-          docker rm -f "$CONTAINER_NAME"
-          docker run --name "$CONTAINER_NAME" -e "TERM=xterm" -d "$CHECKPOINT_IMAGE_NAME" /usr/bin/tini-static -- sleep infinity
-          docker rmi -f "$CHECKPOINT_IMAGE_NAME"
-          docker exec -u root "$CONTAINER_NAME" bash -c 'apt-get update; apt-get upgrade -y; apt-get install -y dialog readline apt-utils; apt-get install -y locales; sed -i -E "s/# (en_US.UTF-8)/\1/g" /etc/locale.gen; dpkg-reconfigure locales; apt-get install -y --no-install-recommends curl git python3-pip python3-venv python-is-python3 openssh-client build-essential cmake clang; apt-get install -y gpg'
-          docker exec -u root "$CONTAINER_NAME" bash -c '\
-          cd $HOME; \
-          mkdir -p $HOME/bin; \ 
-          curl https://storage.googleapis.com/git-repo-downloads/repo -o $HOME/bin/repo; \
-          chmod a+x $HOME/bin/repo; \
-          export PATH=$HOME/bin:$PATH; \
-          curl -L https://pyenv.run | bash; \
-          export PYENV_ROOT=$HOME/.pyenv; \
-          [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"; \
-          eval "$(pyenv init -)"; \
-          eval "$(pyenv virtualenv-init -)"; \
-          mkdir llvm-toolchain; \
-          cd llvm-toolchain; \
-          git config --global user.email "you@example.com"; \
-          git config --global user.name "Your Name"; \
-          yes | repo init -u https://android.googlesource.com/platform/manifest -b llvm-toolchain; \
-          repo sync -cj $(nproc --all) \
-          '
-
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
