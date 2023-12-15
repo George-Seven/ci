@@ -45,14 +45,7 @@ env:
 jobs:        
   build_ndk_image:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Delete Old Backup
-        uses: dev-drprasad/delete-tag-and-release@v1.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: "split_${{ env.CONTAINER_NAME }}" 
       - name: Remove unnecessary packages
         run: |
           sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(cabal-|dotnet-|ghc-|libmono|php|aspnetcore)') mono-runtime-common monodoc-manual ruby &>/dev/null
@@ -182,7 +175,7 @@ jobs:
 
       - name: Download Split Ubuntu
         run: |
-          HOME=/var/lib/docker
+          export HOME=/var/lib/docker
           cd $HOME
           CONTAINER_NAME="${{ env.CONTAINER_NAME }}"
           IMAGE_NAME="${{ env.IMAGE_NAME }}"
@@ -199,6 +192,12 @@ jobs:
           sudo systemctl restart docker.service
           sudo chown -R "$(id -un)" $HOME
           sudo chgrp -R "$(id -un)" $HOME
+          CHECKPOINT_DOWNLOAD_TAG="split_$CONTAINER_NAME"
+          mkdir -p "$CHECKPOINT_DIR"
+          rm -rf "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz"
+          for i in $(curl -sL "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$CHECKPOINT_DOWNLOAD_TAG" | jq -r '.assets[].browser_download_url' | sort -n); do
+            wget -O- "${i}" >> "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz"
+          done
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
