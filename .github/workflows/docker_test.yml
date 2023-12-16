@@ -199,5 +199,8 @@ jobs:
             wget -qO- "${i}" >> "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz"
           done
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
