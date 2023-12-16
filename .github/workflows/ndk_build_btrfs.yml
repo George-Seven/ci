@@ -189,7 +189,6 @@ jobs:
           CHECKPOINT_DIR="$(pwd)/checkpoint"
           CHECKPOINT_IMAGE_NAME="$(sed 's/:.*/:checkpoint/' <<< "$IMAGE_NAME")"
           CHECKPOINT_RELEASE_TAG="split_$CONTAINER_NAME"
-          echo "CHECKPOINT_RELEASE_TAG=$CHECKPOINT_RELEASE_TAG" >> $GITHUB_ENV
           sudo add-apt-repository ppa:criu/ppa -y
           sudo apt update
           sudo apt install criu
@@ -249,7 +248,7 @@ jobs:
            repo_token: ${{ secrets.GITHUB_TOKEN }}
            file_glob: true
            file: ${{ env.CHECKPOINT_DIR }}/*
-           tag: "{{ env.CHECKPOINT_RELEASE_TAG }}"
+           tag: "split_${{ env.CONTAINER_NAME }}"
            make_latest: true
            overwrite: true
 
