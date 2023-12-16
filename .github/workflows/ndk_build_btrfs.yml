@@ -177,7 +177,7 @@ jobs:
               sudo mkdir -p "${GITHUB_WORKSPACE}"
               sudo chown -R "${WORKSPACE_OWNER}" "${GITHUB_WORKSPACE}"
             fi
-
+            sudo mkdir -p /usr/local/bin
             df -h
 
       - name: Split NDK
