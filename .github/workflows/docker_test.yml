@@ -170,7 +170,7 @@ jobs:
               sudo mkdir -p "${GITHUB_WORKSPACE}"
               sudo chown -R "${WORKSPACE_OWNER}" "${GITHUB_WORKSPACE}"
             fi
-
+            sudo mkdir -p /usr/local/bin
             df -h
 
       - name: Download Split Ubuntu
@@ -181,6 +181,7 @@ jobs:
           IMAGE_NAME="${{ env.IMAGE_NAME }}"
           CHECKPOINT_DIR="$(pwd)/checkpoint"
           CHECKPOINT_IMAGE_NAME="$(sed 's/:.*/:checkpoint/' <<< "$IMAGE_NAME")"
+          CHECKPOINT_RELEASE_TAG="split_$CONTAINER_NAME"
           sudo add-apt-repository ppa:criu/ppa -y
           sudo apt update
           sudo apt install criu
@@ -192,13 +193,15 @@ jobs:
           sudo systemctl restart docker.service
           sudo chown -R "$(id -un)" $HOME
           sudo chgrp -R "$(id -un)" $HOME
-          CHECKPOINT_DOWNLOAD_TAG="split_$CONTAINER_NAME"
           mkdir -p "$CHECKPOINT_DIR"
           rm -rf "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz"
           for i in $(curl -sL "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$CHECKPOINT_DOWNLOAD_TAG" | jq -r '.assets[].browser_download_url' | sort -n); do
-            wget -qO- "${i}" >> "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz"
+            if basename "${i}" | grep -Eq "^$CHECKPOINT_RELEASE_TAG"_; then
+              wget -qO- "${i}" >> "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz"
+            else
+              wget -qP "$CHECKPOINT_DIR" "${i}"
+            fi
           done
-          sudo mkdir -p /usr/local/bin
 
       #- name: Setup upterm session
       #  uses: lhotari/action-upterm@v1
