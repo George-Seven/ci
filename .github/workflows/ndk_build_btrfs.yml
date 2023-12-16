@@ -182,7 +182,7 @@ jobs:
 
       - name: Split NDK
         run: |
-          HOME=/var/lib/docker
+          export HOME=/var/lib/docker
           cd $HOME
           CONTAINER_NAME="${{ env.CONTAINER_NAME }}"
           IMAGE_NAME="${{ env.IMAGE_NAME }}"
