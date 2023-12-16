@@ -238,8 +238,8 @@ jobs:
           ' &
           # python toolchain/llvm_android/build.py --no-build windows --skip-tests \
           # docker checkpoint create --checkpoint-dir "$CHECKPOINT_DIR" "$CONTAINER_NAME" "$CONTAINER_NAME"
-          docker exec -u root "$CONTAINER_NAME" echo '"$HOME/.repo_sync_complete"'
-          while ! docker exec -u root "$CONTAINER_NAME" ls '"$HOME/.repo_sync_complete" &>/dev/null'; do
+          docker exec -u root "$CONTAINER_NAME" echo "\$HOME/.repo_sync_complete"
+          while ! docker exec -u root "$CONTAINER_NAME" ls "\$HOME/.repo_sync_complete" &>/dev/null; do
             sleep 1
           done
           sleep 15
