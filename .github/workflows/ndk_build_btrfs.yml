@@ -48,13 +48,22 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Get Timestamp
+        id: timestamp
+        run: |
+          echo "time=$(date +'%s')" >> "$GITHUB_OUTPUT"
+
       - name: Delete Old Backup
         uses: dev-drprasad/delete-tag-and-release@v1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: "split_${{ env.CONTAINER_NAME }}" 
+
       - name: Remove unnecessary packages
         run: |
+          date +'%s'
+          echo "${{ steps.timestamp.outputs.time }}"
+          exit 1
           sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(cabal-|dotnet-|ghc-|libmono|php|aspnetcore)') mono-runtime-common monodoc-manual ruby &>/dev/null
           sudo apt purge -yq *make* *clang* *rust* &>/dev/null
           sudo apt autoremove -yq &>/dev/null
@@ -228,7 +237,6 @@ jobs:
           yes | repo init -u https://android.googlesource.com/platform/manifest -b llvm-toolchain; \
           repo sync -cj $(nproc --all) \
           '
-          exit 1
           # python toolchain/llvm_android/build.py --no-build windows --skip-tests \
           docker checkpoint create --checkpoint-dir "$CHECKPOINT_DIR" "$CONTAINER_NAME" "$CONTAINER_NAME"
           sudo chown -R "$(id -un)" "$CHECKPOINT_DIR"
