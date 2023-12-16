@@ -239,7 +239,7 @@ jobs:
           sudo chown -R "$(id -un)" "$CHECKPOINT_DIR"
           sudo chgrp -R "$(id -un)" "$CHECKPOINT_DIR"
           # docker save "$CHECKPOINT_IMAGE_NAME" | zip -r9q "$CHECKPOINT_DIR/$CONTAINER_NAME.zip"
-          docker save "$CHECKPOINT_IMAGE_NAME" | gzip --best -c | split --bytes=1999M - "$CHECKPOINT_DIR/$CHECKPOINT_RELEASE_TAG"_
+          docker save "$CHECKPOINT_IMAGE_NAME" | gzip -1 -c | split --bytes=1999M - "$CHECKPOINT_DIR/$CHECKPOINT_RELEASE_TAG"_
           # docker save "$CHECKPOINT_IMAGE_NAME" | split --bytes=100M --filter 'gzip --best > $FILE' - "$CHECKPOINT_DIR/$CHECKPOINT_RELEASE_TAG"_
           docker rmi -f "$CHECKPOINT_IMAGE_NAME"
           echo "CHECKPOINT_DIR=$CHECKPOINT_DIR" >> $GITHUB_ENV
