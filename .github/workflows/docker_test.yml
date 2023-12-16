@@ -195,7 +195,7 @@ jobs:
           sudo chgrp -R "$(id -un)" $HOME
           mkdir -p "$CHECKPOINT_DIR"
           rm -rf "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz"
-          for i in $(curl -sL "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$CHECKPOINT_DOWNLOAD_TAG" | jq -r '.assets[].browser_download_url' | sort -n); do
+          for i in $(curl -sL "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$CHECKPOINT_RELEASE_TAG" | jq -r '.assets[].browser_download_url' | sort -n); do
             if basename "${i}" | grep -Eq "^$CHECKPOINT_RELEASE_TAG"_; then
               wget -qO- "${i}" >> "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz"
             else
