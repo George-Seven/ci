@@ -206,6 +206,13 @@ jobs:
           done
           gzip -c -d "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz" | docker load
           rm -rf "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz"
+          CONTAINER_ID=$(docker create --name "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME" 2>/dev/null | tail -n 1)
+          docker rmi -f "$CHECKPOINT_IMAGE_NAME"
+          tar xf "$CHECKPOINT_DIR/checkpoint_$CONTAINER_NAME.tar.gz" -C "$CHECKPOINT_DIR"
+          rm -rf "$CHECKPOINT_DIR/checkpoint_$CONTAINER_NAME.tar.gz"
+          sudo mv "checkpoint/$CONTAINER_NAME" "/var/lib/docker/containers/$CONTAINER_ID/checkpoints"
+          docker start --checkpoint "$CONTAINER_NAME" "$CONTAINER_NAME"
+          docker checkpoint rm "$CONTAINER_NAME" "$CONTAINER_NAME"
 
       #- name: Setup upterm session
       #  uses: lhotari/action-upterm@v1
