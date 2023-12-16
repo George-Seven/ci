@@ -230,6 +230,8 @@ jobs:
           '
           # python toolchain/llvm_android/build.py --no-build windows --skip-tests \
           docker checkpoint create --checkpoint-dir "$CHECKPOINT_DIR" "$CONTAINER_NAME" "$CONTAINER_NAME"
+          sudo chown -R "$(id -un)" "$CHECKPOINT_DIR"
+          sudo chgrp -R "$(id -un)" "$CHECKPOINT_DIR"
           tar -I 'gzip --best' -cf "$CHECKPOINT_DIR/checkpoint_$CONTAINER_NAME.tar.gz" -C "$CHECKPOINT_DIR" ./ubuntu
           rm -rf "$CHECKPOINT_DIR/$CONTAINER_NAME"
           docker commit "$CONTAINER_NAME" "$CHECKPOINT_IMAGE_NAME"
