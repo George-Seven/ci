@@ -196,13 +196,13 @@ jobs:
           mkdir -p "$CHECKPOINT_DIR"
           rm -rf "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz"
           for i in $(curl -sL "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$CHECKPOINT_RELEASE_TAG" | jq -r '.assets[].browser_download_url' | sort -n); do
-            echo -n "Downloading $(basename "${i}")"
+            echo -en "\nDownloading $(basename "${i}")"
             if basename "${i}" | grep -Eq "^$CHECKPOINT_RELEASE_TAG"_; then
               wget -qO- "${i}" >> "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz"
             else
               wget -qP "$CHECKPOINT_DIR" "${i}"
             fi
-            echo -n "...done"
+            echo -en "...done\n"
           done
           gzip -c -d "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz" | docker load
           rm -rf "$CHECKPOINT_DIR/$CONTAINER_NAME.tar.gz"
