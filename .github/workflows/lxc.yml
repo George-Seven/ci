@@ -32,7 +32,7 @@ jobs:
       - name: Setup Waydroid
         run: |
           sudo apt update -y
-          sudo apt upgrade -y
+          # sudo apt upgrade -y
           sudo apt install -y curl ca-certificates
           curl https://repo.waydro.id | sudo bash
           sudo apt install -y waydroid tigervnc-standalone-server weston
