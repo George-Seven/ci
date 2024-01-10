@@ -11,10 +11,11 @@ jobs:
     steps:
       - name: Setup LXC
         run: |
-          sudo apt install -y lxc dkms linux-headers-generic
+          sudo apt install -y lxc dkms linux-modules-extra-$(uname -r)
           sudo lxc-create -t download -n "${{ env.CONTAINER_NAME }}" -- -d ubuntu -r "${{ env.IMAGE_NAME }}" -a amd64
           git clone --depth 1 https://github.com/choff/anbox-modules
-          # cd anbox-modules
+          cd anbox-modules
+          ./INSTALL.sh
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
