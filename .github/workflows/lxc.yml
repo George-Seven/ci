@@ -15,7 +15,7 @@ jobs:
           sudo mkdir -p /dev/binderfs
           sudo modprobe binder_linux
           sudo mount -t binder binder /dev/binderfs
-          sudo modprobe ashmem_linux
+          # sudo modprobe ashmem_linux
 
           for i in binder hwbinder vndbinder; do
             sudo ln -nsf "/dev/binderfs/${i}" "/dev/${i}"
