@@ -14,6 +14,7 @@ jobs:
           sudo apt install -y linux-modules-extra-$(uname -r)
           sudo mkdir -p /dev/binderfs
           sudo modprobe binder_linux
+          sudo mount -t binder binder /dev/binderfs
           sudo modprobe ashmem_linux
 
           for i in binder hwbinder vndbinder; do
