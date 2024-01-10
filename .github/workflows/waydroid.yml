@@ -36,13 +36,14 @@ jobs:
           sudo apt install -y curl ca-certificates
           curl https://repo.waydro.id | sudo bash
           sudo apt install -y waydroid tigervnc-standalone-server weston xfce4 xfce4-terminal
-          sudo waydroid init -s GAPPS &>/dev/null
+          # sudo waydroid init -s GAPPS &>/dev/null
           export DISPLAY="${{ env.DISPLAY }}"
           mkdir -p "$HOME/.vnc"
           chmod go-rwx "$HOME/.vnc"
           vncpasswd -f <<< "password" > "$HOME/.vnc/passwd"
           vncserver -localhost no "${{ env.DISPLAY }}"
           ( weston --socket "${{ env.WAYLAND_DISPLAY }}" --backend x11-backend.so &>/dev/null & )
+          sudo waydroid init -s GAPPS &>/dev/null
           ( WAYLAND_DISPLAY="${{ env.WAYLAND_DISPLAY }}" waydroid session start &>/dev/null & )
 
       - name: Setup tmate session
