@@ -1,4 +1,4 @@
-name: ci3
+name: lxc
 on:
   workflow_dispatch:
 env:
