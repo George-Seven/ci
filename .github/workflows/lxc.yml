@@ -29,11 +29,13 @@ jobs:
           #   sudo modprobe "$(basename "${i}" | sed -E 's/\.ko$//')"
           # done
           
-
-      - name: Setup LXC
+      - name: Setup Waydroid
         run: |
-          sudo apt install -y lxc
-          sudo lxc-create -t download -n "${{ env.CONTAINER_NAME }}" -- -d ubuntu -r "${{ env.IMAGE_NAME }}" -a amd64
+          sudo apt update -y
+          sudo apt upgrade -y
+          sudo apt install -y curl ca-certificates
+          curl https://repo.waydro.id | sudo bash
+          sudo apt install -y waydroid weston
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
