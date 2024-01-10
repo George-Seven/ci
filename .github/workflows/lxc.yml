@@ -15,11 +15,15 @@ jobs:
           sudo mkdir -p /dev/binderfs
           sudo modprobe binder_linux
           sudo mount -t binder binder /dev/binderfs
-          # sudo modprobe ashmem_linux
 
           for i in binder hwbinder vndbinder; do
             sudo ln -nsf "/dev/binderfs/${i}" "/dev/${i}"
           done
+
+          git clone --depth 1 https://github.com/choff/anbox-modules
+          cd anbox-modules/ashmem
+          make -j $(nproc --all)
+          sudo insmod ashmem_linux.ko
           
           # for i in $(sudo find /lib/modules/*-azure -type f -name "*\.ko"); do
           #   sudo modprobe "$(basename "${i}" | sed -E 's/\.ko$//')"
