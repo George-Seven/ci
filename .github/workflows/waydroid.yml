@@ -41,6 +41,7 @@ jobs:
           mkdir -p "$HOME/.vnc"
           chmod go-rwx "$HOME/.vnc"
           echo -e "password\npassword\n" | vncpasswd
+          exit 1
           vncserver -localhost no "${{ env.DISPLAY }}"
           ( weston --socket "${{ env.WAYLAND_DISPLAY }}" --backend x11-backend.so &>/dev/null & )
           sudo waydroid init -s GAPPS &>/dev/null
