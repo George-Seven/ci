@@ -2,8 +2,8 @@ name: lxc
 on:
   workflow_dispatch:
 env:
-  CONTAINER_NAME: "ubuntu"
-  IMAGE_NAME: "jammy"
+  DISPLAY: ":1"
+  WAYLAND_DISPLAY: "waydroid"
 
 jobs:
   build:
@@ -37,6 +37,13 @@ jobs:
           curl https://repo.waydro.id | sudo bash
           sudo apt install -y waydroid tigervnc-standalone-server weston xfce xfce4-terminal
           sudo waydroid init -s GAPPS &>/dev/null
+          export DISPLAY="${{ env.DISPLAY }}"
+          mkdir -p "$HOME/.vnc"
+          chmod go-rwx "$HOME/.vnc"
+          vncpasswd -f <<< "password" > "$HOME/.vnc/passwd"
+          vncserver -localhost no "${{ env.DISPLAY }}"
+          ( weston --socket "${{ env.WAYLAND_DISPLAY }}" --backend x11-backend.so &>/dev/null & )
+          ( WAYLAND_DISPLAY="${{ env.WAYLAND_DISPLAY }}" waydroid session start &>/dev/null & )
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
