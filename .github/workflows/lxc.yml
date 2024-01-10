@@ -9,13 +9,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Kernel Modules
+        run: |
+          sudo apt install -y linux-modules-extra-$(uname -r)
+          sudo mkdir -p /dev/binderfs
+          sudo modprobe binder_linux
+          sudo modprobe ashmem_linux
+
+          for i in binder hwbinder vndbinder; do
+            sudo ln -nsf "/dev/binderfs/${i}" "/dev/${i}"
+          done
+          
+          # for i in $(sudo find /lib/modules/*-azure -type f -name "*\.ko"); do
+          #   sudo modprobe "$(basename "${i}" | sed -E 's/\.ko$//')"
+          # done
+          
+
       - name: Setup LXC
         run: |
-          sudo apt install -y lxc dkms linux-modules-extra-$(uname -r)
+          sudo apt install -y lxc
           sudo lxc-create -t download -n "${{ env.CONTAINER_NAME }}" -- -d ubuntu -r "${{ env.IMAGE_NAME }}" -a amd64
-          git clone --depth 1 https://github.com/choff/anbox-modules
-          cd anbox-modules
-          ./INSTALL.sh
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
