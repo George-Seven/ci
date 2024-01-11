@@ -35,6 +35,7 @@ jobs:
           sudo apt install -y lxc
 
           # Setup LXC container
+          echo -n '
           CONTAINER_NAME_LIST="ubuntu"
           
           lxc_start(){
@@ -84,7 +85,8 @@ jobs:
             # lxc_restart "${container_name}"
             lxc_stop "${container_name}"
           done
-
+          ' | bash
+          
           exit 0
           
           # sudo apt upgrade -y
