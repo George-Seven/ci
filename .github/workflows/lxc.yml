@@ -1,0 +1,107 @@
+name: lxc
+on:
+  workflow_dispatch:
+env:
+  DISPLAY: ":1"
+  WAYLAND_DISPLAY: "waydroid"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Kernel Modules
+        run: |
+          sudo apt install -y linux-modules-extra-$(uname -r)
+          sudo mkdir -p /dev/binderfs
+          sudo modprobe binder_linux
+          sudo mount -t binder binder /dev/binderfs
+
+          for i in binder hwbinder vndbinder; do
+            sudo ln -nsf "/dev/binderfs/${i}" "/dev/${i}"
+          done
+
+          git clone --depth 1 https://github.com/choff/anbox-modules
+          cd anbox-modules/ashmem
+          make -j $(nproc --all)
+          sudo insmod ashmem_linux.ko
+          
+          # for i in $(sudo find /lib/modules/*-azure -type f -name "*\.ko"); do
+          #   sudo modprobe "$(basename "${i}" | sed -E 's/\.ko$//')"
+          # done
+          
+      - name: Setup LXC
+        run: |
+          sudo apt update -y
+          sudo apt install -y lxc
+
+          # Setup LXC container
+          CONTAINER_NAME_LIST="ubuntu"
+          
+          lxc_start(){
+            sudo lxc-start -d -n "${1}"
+            sleep 5
+            return 0
+          }
+          
+          lxc_stop(){
+            # sudo lxc-attach -n "${1}" --clear-env -- usr/bin/bash -c "shutdown now"
+            sudo lxc-stop -k "${1}" &>/dev/null
+            return 0
+          }
+          
+          lxc_restart(){
+            lxc_stop "${1}"
+            lxc_start "${1}"
+          }
+          
+          lxc_create(){
+            sudo lxc-create -t download -n "${1}" -- --no-validate -d ubuntu -r jammy -a arm64
+          }
+          
+          lxc_remove(){
+            sudo lxc-destroy -n "${1}" &>/dev/null
+            return 0
+          }
+          
+          lxc_run(){
+            sudo lxc-attach -n "${1}" -u 1000 -g 1000 --clear-env -v HOME="/home/ubuntu" -v USER="ubuntu" -v TMPDIR="/tmp" -- usr/bin/bash -c "cd; ${2}"
+          }
+          
+          for container_name in ${CONTAINER_NAME_LIST}; do
+            lxc_stop "${container_name}"
+            lxc_remove "${container_name}"
+            lxc_create "${container_name}"
+            lxc_start "${container_name}"
+            lxc_run "${container_name}" "sudo apt update -y; sudo apt -y upgrade; sudo apt install -y xfce4 xfce4-terminal tigervnc-standalone-server curl ca-certificates weston; sudo apt install snap; sudo snap install novnc"
+            lxc_restart "${container_name}"
+            lxc_run "${container_name}" "sudo apt install -y dnsmasq iptables iproute2"
+            lxc_restart "${container_name}"
+            lxc_run "${container_name}" "sudo apt install -y lxc"
+            lxc_restart "${container_name}"
+            # lxc_run "${container_name}" "sudo apt install -y libapparmor-dev libselinux-dev libseccomp-dev libcap-dev libsystemd-dev wget docbook2x meson pkg-config docbook2x cmake git libssl-dev libpam0g-dev liburing-dev; mkdir -p project/build/lxc; cd project/build; wget https://github.com/lxc/lxc/archive/refs/tags/lxc-5.0.3.tar.gz -O lxc.tar.gz; tar xf lxc.tar.gz --strip-components=1 -C lxc; cd lxc; sed -i 's/cpuset\.cpus/cpus/g' src/lxc/cgroups/cgfsng.c; sed -i 's/cpuset\.mems/mems/g' src/lxc/cgroups/cgfsng.c; sed -i 's/cpuset\.cpus/cpus/g' src/lxc/pam/pam_cgfs.c; sed -i 's/cpuset\.mems/mems/g' src/lxc/pam/pam_cgfs.c; meson setup -Dprefix=/usr build; meson compile -C build; sudo meson install -C build; cd ../../.."
+            # lxc_restart "${container_name}"
+            # lxc_run "${container_name}" "sudo apt install -y curl ca-certificates; curl -s https://repo.waydro.id | sudo bash; sudo apt install -y waydroid; sudo waydroid init -s GAPPS"
+            # lxc_restart "${container_name}"
+            lxc_stop "${container_name}"
+          done
+
+          exit 0
+          
+          # sudo apt upgrade -y
+          sudo apt install -y curl ca-certificates
+          curl https://repo.waydro.id | sudo bash
+          sudo apt install lxc
+          exit 0
+          # sudo apt install -yq waydroid tigervnc-standalone-server weston xfce4 xfce4-terminal
+          # sudo waydroid init -s GAPPS &>/dev/null
+          export DISPLAY="${{ env.DISPLAY }}"
+          mkdir -p "$HOME/.vnc"
+          chmod go-rwx "$HOME/.vnc"
+          echo -e "password\npassword\n" | vncpasswd
+          vncserver -localhost no "${{ env.DISPLAY }}"
+          ( weston --socket "${{ env.WAYLAND_DISPLAY }}" --backend x11-backend.so &>/dev/null & )
+          sudo waydroid init -s GAPPS &>/dev/null
+          ( WAYLAND_DISPLAY="${{ env.WAYLAND_DISPLAY }}" waydroid session start &>/dev/null & )
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
