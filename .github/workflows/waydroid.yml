@@ -33,7 +33,7 @@ jobs:
         run: |
           sudo apt update -y
           wget https://downloads.realvnc.com/download/file/vnc.files/VNC-Server-7.9.0-Linux-x64.deb -O VNC-Server-Linux-x64.deb
-          sudo setfacl m u:_apt:rwx VNC-Server-Linux-x64.deb
+          sudo setfacl -m u:_apt:rwx VNC-Server-Linux-x64.deb
           sudo apt install ./VNC-Server-Linux-x64.deb
           exit 0
           # sudo apt upgrade -y
