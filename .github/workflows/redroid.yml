@@ -48,7 +48,8 @@ jobs:
           # adb connect localhost:5555
           sudo snap install ngrok --devmode
           ngrok config add-authtoken "${{ secrets.NGROK_AUTHTOKEN }}"
-          ( ngrok tcp 5901 &>/dev/null & )
+          ( ngrok tcp 5555 &>/dev/null & )
+          # ( ngrok tcp 5901 &>/dev/null & )
           # ( scrcpy -s localhost:5555 $>/dev/null )
 
       - name: Setup tmate session
