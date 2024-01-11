@@ -30,14 +30,24 @@ jobs:
         run: |
           export DISPLAY=:1
           sudo apt update -y
-          sudo apt install -y xterm tigervnc-standalone-server scrcpy
+          sudo apt install -y tigervnc-standalone-server openbox libdbus-glib-1-dev libgbm-dev adb scrcpy
+          docker run -itd --rm --privileged \
+              --pull always \
+              -v ~/data:/data \
+              -p 5555:5555 \
+              redroid/redroid:11.0.0-latest \
+              androidboot.redroid_width=1080 \
+              androidboot.redroid_height=1920 \
+              androidboot.redroid_dpi=480
           mkdir -p "$HOME/.vnc"
           chmod go-rwx "$HOME/.vnc"
           echo -e "password\npassword\n" | vncpasswd
           vncserver :1
+          adb connect localhost:5555
           sudo snap install ngrok --devmode
           ngrok config add-authtoken "${{ secrets.NGROK_AUTHTOKEN }}"
           ( ngrok tcp 5901 &>/dev/null & )
+          # ( scrcpy -s localhost:5555 $>/dev/null )
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
