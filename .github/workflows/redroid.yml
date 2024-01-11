@@ -30,7 +30,8 @@ jobs:
         run: |
           export DISPLAY=:1
           sudo apt update -y
-          sudo apt install -y tigervnc-standalone-server openbox libdbus-glib-1-dev libgbm-dev adb scrcpy
+          # sudo apt install -y tigervnc-standalone-server openbox libdbus-glib-1-dev libgbm-dev adb scrcpy
+          sudo apt install -y tigervnc-standalone-server xterm adb scrcpy
           docker run -itd --rm --privileged \
               --pull always \
               -v ~/data:/data \
