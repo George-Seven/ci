@@ -38,7 +38,6 @@ jobs:
           sudo snap install ngrok --devmode
           ngrok config add-authtoken "${{ secrets.NGROK_AUTHTOKEN }}"
           ( ngrok tcp 5901 &>/dev/null & )
-          curl -sL http://127.0.0.1:4040/api/tunnels | jq -r ".tunnels[0].public_url"
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
