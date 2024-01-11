@@ -28,10 +28,11 @@ jobs:
           
       - name: Setup Redroid
         run: |
-          export DISPLAY=:1
+          # export DISPLAY=:1
           sudo apt update -y
           # sudo apt install -y tigervnc-standalone-server openbox libdbus-glib-1-dev libgbm-dev adb scrcpy
-          sudo apt install -y tigervnc-standalone-server xterm adb scrcpy
+          # sudo apt install -y tigervnc-standalone-server xterm adb scrcpy
+          sudo apt install -y adb scrcpy
           docker run -itd --rm --privileged \
               --pull always \
               -v ~/data:/data \
@@ -40,10 +41,10 @@ jobs:
               androidboot.redroid_width=1080 \
               androidboot.redroid_height=1920 \
               androidboot.redroid_dpi=480
-          mkdir -p "$HOME/.vnc"
-          chmod go-rwx "$HOME/.vnc"
-          echo -e "password\npassword\n" | vncpasswd
-          vncserver :1
+          # mkdir -p "$HOME/.vnc"
+          # chmod go-rwx "$HOME/.vnc"
+          # echo -e "password\npassword\n" | vncpasswd
+          # vncserver :1
           # adb connect localhost:5555
           sudo snap install ngrok --devmode
           ngrok config add-authtoken "${{ secrets.NGROK_AUTHTOKEN }}"
