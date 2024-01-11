@@ -35,7 +35,9 @@ jobs:
           # sudo apt upgrade -y
           sudo apt install -y curl ca-certificates
           curl https://repo.waydro.id | sudo bash
-          sudo apt install -yq waydroid tigervnc-standalone-server weston xfce4 xfce4-terminal
+          sudo apt install lxc
+          exit 0
+          # sudo apt install -yq waydroid tigervnc-standalone-server weston xfce4 xfce4-terminal
           # sudo waydroid init -s GAPPS &>/dev/null
           export DISPLAY="${{ env.DISPLAY }}"
           mkdir -p "$HOME/.vnc"
