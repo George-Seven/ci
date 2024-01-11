@@ -44,7 +44,7 @@ jobs:
           chmod go-rwx "$HOME/.vnc"
           echo -e "password\npassword\n" | vncpasswd
           vncserver :1
-          adb connect localhost:5555
+          # adb connect localhost:5555
           sudo snap install ngrok --devmode
           ngrok config add-authtoken "${{ secrets.NGROK_AUTHTOKEN }}"
           ( ngrok tcp 5901 &>/dev/null & )
