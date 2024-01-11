@@ -46,11 +46,12 @@ jobs:
           # echo -e "password\npassword\n" | vncpasswd
           # vncserver :1
           # adb connect localhost:5555
-          sudo snap install ngrok --devmode
-          ngrok config add-authtoken "${{ secrets.NGROK_AUTHTOKEN }}"
-          ( ngrok tcp 5555 &>/dev/null & )
+          # sudo snap install ngrok --devmode
+          # ngrok config add-authtoken "${{ secrets.NGROK_AUTHTOKEN }}"
+          # ( ngrok tcp 5555 &>/dev/null & )
           # ( ngrok tcp 5901 &>/dev/null & )
           # ( scrcpy -s localhost:5555 $>/dev/null )
+          ssh -p 443 -R0:localhost:5555 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 tcp@a.pinggy.io . 2>/dev/null | while read -r line; do if echo "${line}" | grep -q "tcp://"; then while true; do echo "${line}" | sed 's/.*tcp:\/\///'; sleep 5; done; fi; done
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
