@@ -1,0 +1,44 @@
+name: redroid
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Kernel Modules
+        run: |
+          sudo apt install -y linux-modules-extra-$(uname -r)
+          sudo mkdir -p /dev/binderfs
+          sudo modprobe binder_linux
+          sudo mount -t binder binder /dev/binderfs
+
+          for i in binder hwbinder vndbinder; do
+            sudo ln -nsf "/dev/binderfs/${i}" "/dev/${i}"
+          done
+
+          git clone --depth 1 https://github.com/choff/anbox-modules
+          cd anbox-modules/ashmem
+          make -j $(nproc --all)
+          sudo insmod ashmem_linux.ko
+          
+          # for i in $(sudo find /lib/modules/*-azure -type f -name "*\.ko"); do
+          #   sudo modprobe "$(basename "${i}" | sed -E 's/\.ko$//')"
+          # done
+          
+      - name: Setup Redroid
+        run: |
+          export DISPLAY=:1
+          sudo apt update -y
+          sudo apt install -y xterm tigervnc-standalone-server scrcpy
+          mkdir -p "$HOME/.vnc"
+          chmod go-rwx "$HOME/.vnc"
+          echo -e "password\npassword\n" | vncpasswd
+          vncserver :1
+          sudo snap install ngrok --devmode
+          ngrok config add-authtoken "${{ secrets.NGROK_AUTHTOKEN }}"
+          ( ngrok tcp 5901 &>/dev/null & )
+          curl -sL http://127.0.0.1:4040/api/tunnels | jq -r ".tunnels[0].public_url"
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
