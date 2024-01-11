@@ -32,6 +32,7 @@ jobs:
       - name: Setup Waydroid
         run: |
           sudo apt update -y
+          exit 0
           wget https://downloads.realvnc.com/download/file/vnc.files/VNC-Server-7.9.0-Linux-x64.deb -O VNC-Server-Linux-x64.deb
           sudo setfacl -m u:_apt:rwx VNC-Server-Linux-x64.deb
           sudo apt install ./VNC-Server-Linux-x64.deb
