@@ -73,6 +73,7 @@ jobs:
             lxc_remove "${container_name}"
             lxc_create "${container_name}"
             lxc_start "${container_name}"
+            exit 0
             lxc_run "${container_name}" "sudo apt update -y; sudo apt -y upgrade; sudo apt install -y xfce4 xfce4-terminal tigervnc-standalone-server curl ca-certificates weston; sudo apt install snap; sudo snap install novnc"
             lxc_restart "${container_name}"
             lxc_run "${container_name}" "sudo apt install -y dnsmasq iptables iproute2"
