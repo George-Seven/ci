@@ -55,7 +55,7 @@ jobs:
           }
           
           lxc_create(){
-            sudo lxc-create -t download -n "${1}" -- --no-validate -d ubuntu -r jammy -a arm64
+            sudo lxc-create -t download -n "${1}" -- -d ubuntu -r jammy -a amd64
           }
           
           lxc_remove(){
