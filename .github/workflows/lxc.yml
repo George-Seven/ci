@@ -67,12 +67,18 @@ jobs:
           lxc_run(){
             sudo lxc-attach -n "${1}" -u 1000 -g 1000 --clear-env -v HOME="/home/ubuntu" -v USER="ubuntu" -v TMPDIR="/tmp" -- usr/bin/bash -c "cd; ${2}"
           }
+
+          lxc_run_root(){
+            sudo lxc-attach -n "${1}" --clear-env -v HOME="/home/ubuntu" -v USER="ubuntu" -v TMPDIR="/tmp" -- usr/bin/bash -c "cd; ${2}"
+          }
           
           for container_name in ${CONTAINER_NAME_LIST}; do
             lxc_stop "${container_name}"
             lxc_remove "${container_name}"
             lxc_create "${container_name}"
             lxc_start "${container_name}"
+            lxc_run_root "${container_name}" "echo password | sed '\''s/.*/\0\n\0/'\'' | passwd root &>/dev/null; sed -i -E '\''s/^( *#* *)?DNS=.*/DNS=1.1.1.1/g'\'' /etc/systemd/resolved.conf"
+            lxc_run "${container_name}" "echo password | sed '\''s/.*/\0\n\0/'\'' | passwd ubuntu &>/dev/null"
             exit 0
             lxc_run "${container_name}" "sudo apt update -y; sudo apt -y upgrade; sudo apt install -y xfce4 xfce4-terminal tigervnc-standalone-server curl ca-certificates weston; sudo apt install snap; sudo snap install novnc"
             lxc_restart "${container_name}"
