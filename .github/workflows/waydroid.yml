@@ -29,11 +29,15 @@ jobs:
       - name: Setup Waydroid
         run: |
           sudo apt update -y
-          sudo apt install -y tigervnc-standalone-server openbox libdbus-glib-1-dev libgbm-dev weston
+          # sudo apt install -y tigervnc-standalone-server openbox libdbus-glib-1-dev libgbm-dev weston
+          sudo apt install -y weston
           sudo apt install -y curl ca-certificates
           curl https://repo.waydro.id | sudo bash
           sudo apt install -y waydroid
           sudo waydroid init -s GAPPS &>/dev/null
+          ( weston --socket waydroid  --backend headless-backend.so --width 486 --height 1000 &>/dev/null & )
+          sleep 1
+          ( WAYLAND_DISPLAY=waydroid waydroid session start &>/dev/null & )
           exit 0
           wget https://downloads.realvnc.com/download/file/vnc.files/VNC-Server-7.9.0-Linux-x64.deb -O VNC-Server-Linux-x64.deb
           sudo setfacl -m u:_apt:rwx VNC-Server-Linux-x64.deb
