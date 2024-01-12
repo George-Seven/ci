@@ -1,9 +1,6 @@
-name: lxc
+name: waydroid
 on:
   workflow_dispatch:
-env:
-  DISPLAY: ":1"
-  WAYLAND_DISPLAY: "waydroid"
 
 jobs:
   build:
