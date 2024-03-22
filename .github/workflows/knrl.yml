@@ -160,13 +160,13 @@ jobs:
     - name: Get Repo
       shell: bash
       run: |
-          git clone --recursive https://github.com/clarencelol/kernel_xiaomi_sm6250 -b melon melon
-          7z a -tzip -mx=9 -bd -bso0 melon.zip melon
+          git clone --recursive https://github.com/clarencelol/kernel_xiaomi_sm6250 -b 13-melon-old melon-old
+          7z a -tzip -mx=9 -bd -bso0 melon-old.zip melon-old
 
     - name: Upload Release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: melon.zip
-        tag: "melon"
+        file: melon-old.zip
+        tag: "melon-old"
         overwrite: true
